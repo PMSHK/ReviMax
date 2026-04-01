@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Win32;
-using ReviMax.Config;
-using ReviMax.DTO.Annotations;
-using ReviMax.Models.Annotations;
+using ReviMax.Core.Config;
+using ReviMax.GostSymbolManager.DTO.Annotations;
+using ReviMax.GostSymbolManager.Models.Annotations;
 
 namespace ReviMax.Core.Utils.Managers
 {

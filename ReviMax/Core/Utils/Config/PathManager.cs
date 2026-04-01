@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ReviMax.Config;
+using ReviMax.Core.Config;
 
 namespace ReviMax.Core.Utils.Config
 {

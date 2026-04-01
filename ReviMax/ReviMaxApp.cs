@@ -8,11 +8,11 @@ using Autodesk.Revit.DB;
 //using Autodesk.Revit.Creation;
 using Autodesk.Revit.DB.Events;
 using Autodesk.Revit.UI;
-using ReviMax.Config;
-using ReviMax.Core.Revit;
+using ReviMax.Core.Config;
 using ReviMax.Core.Utils.Config;
 using ReviMax.Core.Utils.Managers;
-using ReviMax.Models.Annotations;
+using ReviMax.GostSymbolManager.Models.Annotations;
+using ReviMax.Revit.Parameters;
 
 
 namespace ReviMax

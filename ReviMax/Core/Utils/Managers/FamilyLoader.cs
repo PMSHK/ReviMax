@@ -4,8 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ReviMax.Config;
-using ReviMax.UI.ViewModel;
+using ReviMax.Core.Config;
+using ReviMax.GostSymbolManager.UI.ViewModel;
 
 namespace ReviMax.Core.Utils.Managers
 {

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
-using ReviMax.Config;
+using ReviMax.Core.Config;
 
 namespace ReviMax.Core.Utils.Managers
 {

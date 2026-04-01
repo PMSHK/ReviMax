@@ -51,7 +51,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="DTO\Patterns\" />
+    <Folder Include="GostSymbolManager\DTO\Patterns\" />
     <Folder Include="icons\" />
   </ItemGroup>
   <ItemGroup>
@@ -63,15 +63,15 @@
     <PackageReference Include="Serilog.Sinks.TextWriter" Version="2.1.0" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="UI\Windows\ReviLineSettingsWindow.xaml.cs">
+    <Compile Update="GostSymbolManager\UI\Windows\ReviLineSettingsWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Page Update="UI\UserControl\Resources\RmListStyle.xaml">
+    <Page Update="GostSymbolManager\UI\UserControl\Resources\RmListStyle.xaml">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Page>
-    <Page Update="UI\UserControl\Resources\RmIconButtonStyle.xaml">
+    <Page Update="GostSymbolManager\UI\UserControl\Resources\RmIconButtonStyle.xaml">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Page>
   </ItemGroup>

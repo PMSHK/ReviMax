@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
-using ReviMax.Config;
+using ReviMax.Core.Config;
 
 namespace ReviMax.Core.Utils.Managers
 {

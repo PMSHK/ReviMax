@@ -12,19 +12,15 @@ using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Electrical;
 using Autodesk.Revit.UI;
-using ReviMax.Config;
-using ReviMax.core.Elements;
-using ReviMax.Core.Elements.Filters;
-using ReviMax.Core.Elements.Providers.Factory;
-using ReviMax.Core.Revit;
+using ReviMax.Core.Config;
 using ReviMax.Core.Utils.Converter;
 using ReviMax.Core.Utils.Managers;
-using ReviMax.Models.Graph;
-using ReviMax.Models.Graph.Filter;
-using ReviMax.Models.Revit;
-using ReviMax.Services;
-using ReviMax.Services.Utils;
-using ReviMax.UI.Windows;
+using ReviMax.GostSymbolManager.Models.Graph;
+using ReviMax.GostSymbolManager.Models.Graph.Filter;
+using ReviMax.GostSymbolManager.Models.Revit;
+using ReviMax.GostSymbolManager.Services;
+using ReviMax.GostSymbolManager.Services.Utils;
+using ReviMax.GostSymbolManager.UI.Windows;
 
 namespace ReviMax.Commands
 {

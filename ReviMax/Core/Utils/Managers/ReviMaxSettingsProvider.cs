@@ -7,16 +7,16 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using Autodesk.Revit.DB;
-using ReviMax.Config;
-using ReviMax.Core.Mapper;
-using ReviMax.Core.Revit;
+using ReviMax.Core.Config;
+using ReviMax.GostSymbolManager.Mapper;
 using ReviMax.Core.Utils.Config;
-using ReviMax.DTO.Annotations;
-using ReviMax.Models.Annotations;
+using ReviMax.GostSymbolManager.DTO.Annotations;
+using ReviMax.GostSymbolManager.Mapper;
+using ReviMax.GostSymbolManager.Models.Annotations;
+using ReviMax.GostSymbolManager.Services.Utils;
 using ReviMax.Revit.Core.Bridge;
 using ReviMax.Revit.Core.Services;
-using ReviMax.Services;
-using ReviMax.Services.Utils;
+using ReviMax.Revit.Config.Storage;
 
 namespace ReviMax.Core.Utils.Managers
 {

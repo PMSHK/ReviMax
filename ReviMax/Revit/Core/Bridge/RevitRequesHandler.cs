@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 using Autodesk.Revit.UI;
-using ReviMax.Config;
+using ReviMax.Core.Config;
 
 namespace ReviMax.Revit.Core.Bridge
 {
