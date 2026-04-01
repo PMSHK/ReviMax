@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RevitAddIns>
+	<AddIn Type="Command">
+		<Name>MyPlugin</Name>
+		<Assembly>F:\projects\CSharp\ReviMax\ReviMax\obj\Debug\ReviMax.dll</Assembly>
+		<AddInId>502fe383-2648-4e98-bc47-3b42c900f04d</AddInId>
+		<FullClassName>ReviMax.core.FirstPlugin</FullClassName>
+		<Text>First command</Text>
+		<VendorId>ADSK</VendorId>
+	</AddIn>
+</RevitAddIns>
