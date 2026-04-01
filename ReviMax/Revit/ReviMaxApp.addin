@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RevitAddIns>
+	<AddIn Type="Application">
+		<Name>ReviMax App</Name>
+		<Assembly>F:\projects\CSharp\ReviMax\ReviMax\bin\Debug\net48\ReviMax.dll</Assembly>
+		<AddInId>C9748685-AD79-405D-9DCC-60206944F3C6</AddInId>
+		<FullClassName>ReviMax.ReviMaxApp</FullClassName>
+		<VendorId>MSHK</VendorId>
+		<VendorDescription>Maksim Shundrik</VendorDescription>
+	</AddIn>
+</RevitAddIns>
