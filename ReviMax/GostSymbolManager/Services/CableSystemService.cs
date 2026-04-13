@@ -21,6 +21,8 @@ using ReviMax.GostSymbolManager.Providers.Factory;
 using ReviMax.GostSymbolManager.Services.Utils;
 using ReviMax.Revit.Calculators;
 using ReviMax.Revit.Config.Storage;
+using ReviMax.Revit.Config.Storage.Model;
+using ReviMax.Revit.Core.Bridge;
 using ReviMax.Revit.Core.Services;
 using ReviMax.Revit.Model;
 
@@ -229,9 +231,13 @@ namespace ReviMax.GostSymbolManager.Services
             if (selectedElement != null)
             {
                 string runId = ReviMaxStorage.GetRunId(selectedElement);
+                ReviMaxLog.Information($"Selected element ID: {elementId}. Retrieved RunId: {runId}. Document {Doc}");
                 if (runId != null)
                 {
-                    int num = cleanupManager.DeleteReviMaxElement(runId, activeView.Id);
+                    //int num = cleanupManager.DeleteReviMaxElement(runId, activeView.Id);
+                    var elementsInfoToDelete = ReviMaxStorage.GetInstanceByActiveView(activeView);
+                    int num = cleanupManager.DeleteReviMaxElementsByRunId(runId, elementsInfoToDelete);
+
                     ReviMaxLog.Information($"Удалено {num} символов кабельных систем с RunId: {runId} на виде {activeView.Name}");
                     TaskDialog.Show("ReviMax", "Команда удаления символов успешно выполнена.");
                 }
@@ -261,6 +267,39 @@ namespace ReviMax.GostSymbolManager.Services
             var familySymbol = service.FindFamilySymbolByName(familyName);
             if (familySymbol != null) { return familySymbol; }
             return null;
+        }
+
+        public void RedrawCableSystems(Dictionary<string, List<StoredInstanceInfo>> groupedStroredInfo, CableSystemSettings settings)
+        {
+            CleanupManager cleanupManager = new(Doc);
+            List<HashSet<Element>> groupedCableSystemElements = new();
+            foreach (var group in groupedStroredInfo)
+            {
+                string runID = group.Key;
+                HashSet<Element> cableSystemElements = new();
+
+                if (group.Value != null && group.Value.Count>0)
+                {
+                    cleanupManager.DeleteReviMaxElement(runID, new ElementId(group.Value[0].ViewId));
+
+                    foreach (var info in group.Value)
+                    {
+                        info.SourceIds?.ForEach(id => { var el = Doc.GetElement(id); cableSystemElements.Add(el); });
+                    }
+                }
+                groupedCableSystemElements.Add(cableSystemElements);
+            }
+
+            foreach(var group in groupedCableSystemElements)
+            {
+                List<ElementId> elementIds = group.Select(el => el.Id).ToList();
+                TransactionManager.StartTransaction(Doc, "showingElements", (doc) => RevitElementsManager.ShowElementsOnView(elementIds, doc.ActiveView));
+                var groupedElements = RevitFilterService.GetGroupedElementsByFamilyGroup(Doc, group.ToList());
+                ReviMaxLog.Information($"Redrawing cable systems. Groups to redraw: {groupedStroredInfo.Count}. Total elements to redraw: {group.Count}. Document {Doc}");
+                DrawCableSystemSymbols(null, settings, groupedElements);
+                ReviMaxLog.Information($"Redrawing completed. Hiding source elements. Document {Doc}");
+                TransactionManager.StartTransaction(Doc, "showingElements", (doc) => RevitElementsManager.HideElementsOnView(elementIds, doc.ActiveView));
+            }
         }
     }
 

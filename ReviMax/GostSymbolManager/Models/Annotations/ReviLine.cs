@@ -98,6 +98,7 @@ namespace ReviMax.GostSymbolManager.Models.Annotations
         public void CoppyFrom(ReviLine source)
         {
             if (ReferenceEquals(this, source)) return;
+            if (source == null) return;
             Name = source.Name;
             if (source.Family.Filled()) { Family = source.Family; }  
             CategoryId = source.CategoryId;

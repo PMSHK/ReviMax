@@ -13,6 +13,7 @@ using Autodesk.Revit.UI;
 using Newtonsoft.Json.Linq;
 using ReviMax.Core.Config;
 using ReviMax.Core.Utils.Config;
+using ReviMax.Core.Utils.Converter;
 using ReviMax.Core.Utils.Managers;
 using ReviMax.GostSymbolManager.DTO.Annotations;
 using ReviMax.GostSymbolManager.Mapper;
@@ -35,10 +36,10 @@ namespace ReviMax.GostSymbolManager.UI.ViewModel
         public Document Doc { get; }
         private RevitFilterManager filterManager;
         private ReviLineService lineService;
-        internal CableSystemSettings Settings { get; set; } = new();
+        public CableSystemSettings Settings { get; set; }
 
         private LineRowVM? _selectedLineStyle;
-        public ReviLine LineSettings { get; set; } = new();
+        public ReviLine LineSettings { get; set; }
         private ReviLine _tmpLine;
 
         public LineRowVM? SelectedLineStyle
@@ -58,13 +59,13 @@ namespace ReviMax.GostSymbolManager.UI.ViewModel
                         //_tmpLine?.Step = LineSettings.Step;
                         //_tmpLine?.GlyphSize = LineSettings.GlyphSize;
                         if (value != null) { 
-                        var foundLine = UpdateReviLine(value);
+                        UpdateReviLine(value);
                         }
                         ReviMaxLog.Information($"Built line from selected style: {_tmpLine?.Name}, CategoryId: {_tmpLine?.CategoryId}, Color: {_tmpLine?.Color}, Weight: {_tmpLine?.Weight}");
 
                     }
 
-                        OnPropertyChanged();
+                        OnPropertyChanged(nameof(SelectedLineStyle));
                 }
             } 
 
@@ -82,6 +83,7 @@ namespace ReviMax.GostSymbolManager.UI.ViewModel
                 if (_categories != value && value!=null)
                 {
                     _categories = value;
+                    OnPropertyChanged(nameof(Categories));
                 }
             }
         }
@@ -132,6 +134,14 @@ namespace ReviMax.GostSymbolManager.UI.ViewModel
                 {
                     var fileName = Path.GetFileNameWithoutExtension(fileSettings.path);
                     Settings.CoppyFrom(fileSettings.data.ToModel());
+                    var foundLineSettings = Settings.LineSettings.FirstOrDefault(ls => ls.Name == LineSettings.Name);
+                    if (foundLineSettings != null) LineSettings.CoppyFrom(foundLineSettings);
+                    _tmpLine = LineSettings.Clone() as ReviLine;
+                    SelectedLineStyle = LineStyles.FirstOrDefault(s =>
+                                        string.Equals(s.Name, LineSettings.Name, StringComparison.Ordinal));
+
+
+                    var actual = Settings.LineSettings.FirstOrDefault(ls => ls.Name == LineSettings.Name);
                 }
             }, () => true);
             SaveSettings = new ReviMaxCommand(() => SaveLoadFileService.SaveToFile<CableSystemSettingsDto>(Settings.ToDto()), () => Settings != null && Settings.Filled() );
@@ -169,7 +179,7 @@ namespace ReviMax.GostSymbolManager.UI.ViewModel
             
             if (SelectedLineStyle != null)
             {
-                _tmpLine = UpdateReviLine(SelectedLineStyle);
+                UpdateReviLine(SelectedLineStyle);
                 LineSettings.CoppyFrom(_tmpLine);
                 _dispatcher.Request(
                     request: (app) =>
@@ -209,14 +219,13 @@ namespace ReviMax.GostSymbolManager.UI.ViewModel
 
         }
 
-        private ReviLine? UpdateReviLine(LineRowVM model)
+        private void UpdateReviLine(LineRowVM model)
         {   
             var foudnLine = lineService.BuildReviLine(model.Name, LineSettings.Family.FamilyMode);
             _tmpLine = foudnLine?.Clone() as ReviLine;
             _tmpLine?.Offset = LineSettings.Offset;
             _tmpLine?.Step = LineSettings.Step;
             _tmpLine?.GlyphSize = LineSettings.GlyphSize;
-            return _tmpLine!=null?_tmpLine : null;
         }
     }
 }

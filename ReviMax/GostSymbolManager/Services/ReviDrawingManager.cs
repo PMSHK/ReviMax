@@ -130,6 +130,8 @@ namespace ReviMax.GostSymbolManager.Services
 
             dir = dir.Normalize();
 
+            List<ElementId> sourceIds = new();
+
             Doc.StartTransaction("Draw Run Family", doc =>
             {
                 if (!symbol.IsActive)
@@ -166,15 +168,21 @@ namespace ReviMax.GostSymbolManager.Services
 
                 // Потом поворот вокруг ТОЙ ЖЕ точки
                 RotateFreshInstance(instance, start, dir, activeView);
+                ReviMaxLog.Information($"runId: {runId},placed instance: {instance.Name} | {instance.Id}, run: {string.Join(",", run.Segments.Select(seg=>seg.Element.Id))}");
+
+                sourceIds = run.Segments.Select(seg => seg.Element.Id).ToList();
 
                 ReviMaxStorage.Stamp(
                     instance,
                     runId,
                     symbol.Name,
-                    run.StartNode.Element.Id,
-                    activeView.Id
-                );
+                    sourceIds,
+                    activeView.Id);
+
+                RevitElementsManager.HideElementsOnView(sourceIds, activeView);
             });
+            
+
         }
 
         public XYZ GetStartPoint(GraphRun run)
