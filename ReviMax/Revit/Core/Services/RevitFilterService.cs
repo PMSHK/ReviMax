@@ -4,7 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
+using System.Windows.Threading;
 using Autodesk.Revit.DB;
+using Autodesk.Revit.UI;
+using ReviMax.GostSymbolManager.Filters;
+using ReviMax.GostSymbolManager.Models.Annotations;
+using ReviMax.GostSymbolManager.Providers.Factory;
 
 namespace ReviMax.Revit.Core.Services
 {
@@ -43,5 +48,20 @@ namespace ReviMax.Revit.Core.Services
             return element;
         }
 
+        public static Dictionary<FamilyMode,IList<Element>> GetGroupedElementsByFamilyGroup(Document doc, List<Element> inElements)
+        {
+            if (inElements == null || inElements.Count == 0) return [];
+            var filterFactory = new RevitFilterFactory();
+            var elements = inElements;
+            HashSet<BuiltInCategory> categories = new();
+            ICableSystemCategory filter = null;
+            RevitFilterManager filterManager = new(doc);
+            Dictionary<FamilyMode, IList<Element>> groupedElements = new();
+            
+                    categories = RevitCategoriesService.ExtractCategoriesFromElements(elements);
+                    filter = filterFactory.GetFilter(categories);
+                    groupedElements = filterManager.GetCableElementsSelected(filter, elements);
+            return groupedElements;
+        }
     }
 }

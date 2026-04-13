@@ -74,12 +74,29 @@ namespace ReviMax.GostSymbolManager.Models.Annotations
             if (ReferenceEquals(this, source)) return;
             if (source == null) return;
             GeneralSettings.CoppyFrom(source.GeneralSettings);
-            LineSettings.Clear();
             foreach (var line in source.LineSettings)
             {
-                var newLine = new ReviLine();
-                newLine.CoppyFrom(line);
-                LineSettings.Add(newLine);
+                var existingLine = LineSettings.FirstOrDefault(x => x.Name == line.Name);
+                if (existingLine != null)
+                {
+                    existingLine.CoppyFrom(line);
+                }
+                else
+                {
+                    var newLine = new ReviLine();
+                    newLine.CoppyFrom(line);
+                    LineSettings.Add(newLine);
+                }
+
+                for (int i = LineSettings.Count - 1; i >= 0; i--)
+                {
+                    var existing = LineSettings[i];
+                    bool existsInSource = source.LineSettings.Any(x => x.Name == existing.Name);
+                    if (!existsInSource)
+                    {
+                        LineSettings.RemoveAt(i);
+                    }
+                }
             }
         }
     }

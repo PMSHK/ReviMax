@@ -10,22 +10,24 @@ using System.Xml.Linq;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Plumbing;
 using Autodesk.Revit.UI;
-using ReviMax.GostSymbolManager.Mapper;
+using ReviMax.Core.Config;
 using ReviMax.Core.Utils.Config;
 using ReviMax.Core.Utils.Converter;
 using ReviMax.Core.Utils.Managers;
+using ReviMax.GostSymbolManager.DTO.Annotations;
+using ReviMax.GostSymbolManager.Filters;
+using ReviMax.GostSymbolManager.Mapper;
+using ReviMax.GostSymbolManager.Mapper;
 using ReviMax.GostSymbolManager.Models.Annotations;
+using ReviMax.GostSymbolManager.Providers.Factory;
+using ReviMax.GostSymbolManager.Services;
+using ReviMax.GostSymbolManager.Services.Utils;
+using ReviMax.GostSymbolManager.UI.Commands;
+using ReviMax.Revit.Config.Storage;
+using ReviMax.Revit.Config.Storage.Model;
 using ReviMax.Revit.Core.Bridge;
 using ReviMax.Revit.Core.Bridge.Event;
 using ReviMax.Revit.Core.Services;
-using ReviMax.GostSymbolManager.Services.Utils;
-using ReviMax.GostSymbolManager.UI.Commands;
-using ReviMax.GostSymbolManager.Services;
-using ReviMax.GostSymbolManager.Filters;
-using ReviMax.GostSymbolManager.Providers.Factory;
-using ReviMax.Core.Config;
-using ReviMax.GostSymbolManager.DTO.Annotations;
-using ReviMax.GostSymbolManager.Mapper;
 
 namespace ReviMax.GostSymbolManager.UI.ViewModel
 {
@@ -57,6 +59,8 @@ namespace ReviMax.GostSymbolManager.UI.ViewModel
             }
         }
 
+
+
         RevitFilterManager _filterManager;
         
         public Document Doc { get => _doc; }
@@ -64,8 +68,6 @@ namespace ReviMax.GostSymbolManager.UI.ViewModel
         public ICommand RedrawGostAnnotations { get; }
         public ICommand DeleteGostAnnotations { get; }
         public ICommand SaveSettings { get; }
-
-
 
         public CableSystemManagerVM(Document doc)
         {
@@ -75,10 +77,9 @@ namespace ReviMax.GostSymbolManager.UI.ViewModel
             _filterManager = new(_doc);
             _cableSystemService = new(_doc);
             PlaceGostAnnotations = new ReviMaxCommand(PlaceGostSymbols, CanManipulateGostSymbols);
-            RedrawGostAnnotations = new ReviMaxCommand(RedrawGostSymbols, CanManipulateGostSymbols);
+            RedrawGostAnnotations = new ReviMaxCommand(RedrawGostSymbols, () => true);
             DeleteGostAnnotations = new ReviMaxCommand(DeleteGostSymbols, CanManipulateGostSymbols);
             SaveSettings = new ReviMaxCommand(()=> SaveLoadFileService.SaveToFile<CableSystemSettingsDto>(_settings.ToDto()) ,() => _settings != null && _settings.Filled());
-
             ManageDataTypes();
         }
 
@@ -88,7 +89,8 @@ namespace ReviMax.GostSymbolManager.UI.ViewModel
             if (_currentFilterMode.Equals(CableSystemFilterMode.SELECTED))
             {
                 dispatcher.Request(
-                request: app => { _cableSystemService.DrawCableSystemSymbols(CurrentFilter, _settings, SelectedElements); },
+                request: app => { _cableSystemService.DrawCableSystemSymbols(CurrentFilter, _settings, SelectedElements);
+                },
                 callback: () => { ReviMaxLog.Information("Placing GOST symbols..."); }
                 );
                 return;
@@ -97,13 +99,26 @@ namespace ReviMax.GostSymbolManager.UI.ViewModel
             var currentFilter = GetCurrentFilter();
             if (currentFilter == null) return;
             dispatcher.Request(
-                request: app => { _cableSystemService.DrawCableSystemSymbols(GetCurrentFilter()!, _settings); },
+                request: app => { _cableSystemService.DrawCableSystemSymbols(GetCurrentFilter()!, _settings);
+                },
                 callback: () => { ReviMaxLog.Information("Placing GOST symbols..."); }
                 );
         }
         public void RedrawGostSymbols() 
         {
             ReviMaxLog.Information("Redrawing GOST symbols...");
+            dispatcher.Request(
+                request: app => { 
+                    var groupedStroredInfo = ReviMaxStorage.GetInstanceByActiveView(Doc.ActiveView);
+
+                    if (groupedStroredInfo.Count <= 0) return;
+
+                    _cableSystemService.RedrawCableSystems(groupedStroredInfo, _settings);
+                },
+                callback: () => {
+                    
+                    ReviMaxLog.Information("GOST symbols redrawn."); }
+                );
         }
         public void DeleteGostSymbols() 
         {
@@ -116,6 +131,10 @@ namespace ReviMax.GostSymbolManager.UI.ViewModel
         public bool CanManipulateGostSymbols() 
         {
             return CurrentFilterMode.GetType != null ? true : false;
+        }
+        public bool CanRedrawGostSymbols() 
+        {
+            return ReviMaxStorage.GetInstanceByActiveView(Doc.ActiveView).Count > 0;
         }
         private ICableSystemCategory? GetCurrentFilter()
         {
