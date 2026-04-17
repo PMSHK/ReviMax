@@ -1,10 +1,12 @@
-﻿using System;
+﻿using Autodesk.Revit.DB;
+using Autodesk.Revit.UI;
+using Autodesk.Revit.UI.Selection;
+using ReviMax.Core.Config;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Autodesk.Revit.DB;
-using Autodesk.Revit.UI;
 
 namespace ReviMax.Revit.Core.Services
 {
@@ -60,6 +62,20 @@ namespace ReviMax.Revit.Core.Services
             return null;
         }
 
+        public IList<Element>? GetSelectedElements()
+        {
+            var selectedElements = _uiDoc.Selection.PickElementsByRectangle();
+            ReviMaxLog.Information($"Selected: {selectedElements.Count} elements");
+            return selectedElements;
+
+        }
+
+        public IList<Element>? GetSelectedElements(ISelectionFilter selectionFilter)
+        {
+            var selectedElements = _uiDoc.Selection.PickElementsByRectangle(selectionFilter);
+            ReviMaxLog.Information($"Selected: {selectedElements.Count} elements");
+            return selectedElements;
+        }
 
     }
 }

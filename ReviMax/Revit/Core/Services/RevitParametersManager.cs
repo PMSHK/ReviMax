@@ -7,10 +7,10 @@ using Autodesk.Revit.DB;
 
 namespace ReviMax.Revit.Core.Services
 {
-    public class RevitManager
+    public class RevitParametersManager
     {
-        public RevitManager() { }
-        public RevitManager(string name) { }
+        public RevitParametersManager() { }
+        public RevitParametersManager(string name) { }
 
         public void SetFamilyParameter(FamilyInstance instance, string paramName,double parameterValue)
         {
@@ -40,5 +40,12 @@ namespace ReviMax.Revit.Core.Services
                 p.Set(parameterValue);
         }
 
+        public List<string> GetAllParameters(FamilyInstance instance)
+        {
+            return instance.Parameters
+                .Cast<Parameter>()
+                .Select(p=>p.Definition.Name)
+                .ToList();
         }
+    }
 }

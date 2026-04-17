@@ -24,7 +24,7 @@ namespace ReviMax.GostSymbolManager.Services
         private Document _doc;
         private CableSystemManager _cableSystemManager;
         private FamiliesPlacingManager _familiesManager;
-        private RevitManager _revitManager = new();
+        private RevitParametersManager _revitManager = new();
         public Document Doc { get => _doc; set => _doc = value; }
         public ReviDrawingManager(Document doc)
         {
