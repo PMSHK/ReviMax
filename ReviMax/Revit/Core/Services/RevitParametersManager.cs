@@ -47,5 +47,12 @@ namespace ReviMax.Revit.Core.Services
                 .Select(p=>p.Definition.Name)
                 .ToList();
         }
+        public List<string> GetAllParameters(Element element)
+        {
+            return element.Parameters
+                .Cast<Parameter>()
+                .Select(p => p.Definition.Name)
+                .ToList();
+        }
     }
 }

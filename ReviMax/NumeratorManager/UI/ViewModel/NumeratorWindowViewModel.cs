@@ -1,4 +1,5 @@
 ﻿using Autodesk.Revit.DB;
+using Autodesk.Revit.DB.Plumbing;
 using Autodesk.Revit.UI;
 using ReviMax.Core.Config;
 using ReviMax.GostSymbolManager.UI.Commands;
@@ -34,7 +35,30 @@ namespace ReviMax.NumeratorManager.UI.ViewModel
             }
         }
 
+        private SelectedParameter _selectedParameter;
+
         private ObservableCollection<SelectedParameter> _parameters = new();
+        public SelectedParameter? SelectedParameter
+        {
+            get => _selectedParameter;
+            set
+            {
+                if (_selectedParameter != value)
+                {
+                    _selectedParameter = value;
+                    ReviMaxLog.Information($"Selected parameter changed to: {value?.Name}");
+                    if (_selectedParameter != null && !string.Equals(_selectedParameter?.Name, value?.Name, StringComparison.Ordinal))
+                    {
+                        if (value != null)
+                        {
+                            _selectedParameter = value;
+                        }
+                    }
+
+                    OnPropertyChanged(nameof(SelectedParameter));
+                }
+            }
+        }
         public ObservableCollection<SelectedParameter> Parameters
         {
             get => _parameters;
@@ -78,19 +102,26 @@ namespace ReviMax.NumeratorManager.UI.ViewModel
             Parameters.Clear();
             var service = new RevitSelectionService(new UIDocument(_doc));
             var elements = service.GetSelectedElements();
+            ReviMaxLog.Information($"Elements not null {elements!=null}. Loaded {elements?.Count} elements");
             if (elements == null || elements.Count == 0) return;
             Elements.AddRange(elements);
             var parameterService = new RevitParametersManager();
+            var firstElementParameters = parameterService.GetAllParameters(elements[0]);
+            foreach (var parameter in firstElementParameters) 
+            {
+                GeneralParameters.Add(parameter);
+            }
             foreach (var element in elements)
             {
-                var instance = element as FamilyInstance;
-                if (instance == null) continue;
-                List<string> parameters = parameterService.GetAllParameters(instance);
+                ReviMaxLog.Information($"element is: {element.Name}");
+                List<string> parameters = parameterService.GetAllParameters(element);
                 GeneralParameters.IntersectWith(parameters);
+                ReviMaxLog.Information($"Got {parameters.Count} parameters from {element.Name}");
             }
             
             foreach(var parameterName in GeneralParameters)
             {
+                if(parameterName == null) continue;
                 Parameters.Add(new SelectedParameter(parameterName));
             }
         }
