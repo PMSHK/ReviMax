@@ -23,9 +23,9 @@
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml"/>
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Primary/MaterialDesignColor.Blue.xaml"/>
 
-                <!--<materialDesign:BundledTheme BaseTheme="Dark" 
+                <materialDesign:BundledTheme BaseTheme="Dark" 
                                         PrimaryColor="Blue" 
-                                        SecondaryColor="Lime" />-->
+                                        SecondaryColor="Lime" />
 
             </ResourceDictionary.MergedDictionaries>
             <orderConverter:OrderToBoolConverter x:Key="OrderConverter"/>
