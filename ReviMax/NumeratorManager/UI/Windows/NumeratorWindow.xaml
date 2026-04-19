@@ -28,7 +28,7 @@
                                         SecondaryColor="Lime" />
 
             </ResourceDictionary.MergedDictionaries>
-            <orderConverter:OrderToBoolConverter x:Key="OrderConverter"/>
+            <orderConverter:EnumToBoolConverter x:Key="OrderConverter"/>
         </ResourceDictionary>
     </Window.Resources>
 
@@ -43,8 +43,8 @@
                     <StackPanel Grid.Column="0">
                         <Button Style="{StaticResource RmButton}" Width="Auto" Height="Auto" Margin="{StaticResource AllSidesMargin}" Content="Выбрать элементы" ToolTip="Позволяет выбрать элементы для обработки в модели Revit" Command="{Binding SelectElements}"/>
 
-                        <RadioButton Margin="{StaticResource AllSidesMargin}" Content="Относительно X" Foreground="{StaticResource Text}" IsChecked="{Binding CurrentOrder, Mode=TwoWay, Converter={StaticResource OrderConverter}, ConverterParameter=X}"/>
-                        <RadioButton Margin="{StaticResource AllSidesMargin}" Content="Относительно Y" Foreground="{StaticResource Text}" IsChecked="{Binding CurrentOrder, Mode=TwoWay, Converter={StaticResource OrderConverter}, ConverterParameter=Y}"/>
+                        <RadioButton  Margin="{StaticResource AllSidesMargin}" Content="Относительно X" Foreground="{StaticResource Text}" IsChecked="{Binding CurrentOrder, Mode=TwoWay, Converter={StaticResource OrderConverter}, ConverterParameter=X}"/>
+                        <RadioButton  Margin="{StaticResource AllSidesMargin}" Content="Относительно Y" Foreground="{StaticResource Text}" IsChecked="{Binding CurrentOrder, Mode=TwoWay, Converter={StaticResource OrderConverter}, ConverterParameter=Y}"/>
                         <TextBox Style="{StaticResource MaterialDesignTextBox}" materialDesign:HintAssist.Hint="Префикс" materialDesign:HintAssist.Foreground="{StaticResource Text}" Foreground="{StaticResource Text}" Margin="{StaticResource AllSidesMargin}" Text="{Binding Prefix}"  Height="25" />
                         <TextBox Style="{StaticResource MaterialDesignTextBox}" materialDesign:HintAssist.Hint="Основной текст" materialDesign:HintAssist.Foreground="{StaticResource Text}" Foreground="{StaticResource Text}" Margin="{StaticResource AllSidesMargin}" Text="{Binding GeneralText}" SelectedText="Основной текст"></TextBox>
                         <TextBox Style="{StaticResource MaterialDesignTextBox}" materialDesign:HintAssist.Hint="Суффикс" materialDesign:HintAssist.Foreground="{StaticResource Text}" Foreground="{StaticResource Text}" Margin="{StaticResource AllSidesMargin}" Text="{Binding Suffix}" SelectedText="Суффикс"></TextBox>

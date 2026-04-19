@@ -2,6 +2,7 @@
 using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Selection;
 using ReviMax.Core.Config;
+using ReviMax.Revit.Core.Filter;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -68,6 +69,34 @@ namespace ReviMax.Revit.Core.Services
             ReviMaxLog.Information($"Selected: {selectedElements.Count} elements");
             return selectedElements;
 
+        }
+
+        public IList<Element> PickSameTypeByRectangle()
+        {
+            Reference pickedRef = _uiDoc.Selection.PickObject(
+                ObjectType.Element,
+                "Выберите элемент-образец");
+
+            if (pickedRef == null)
+                return new List<Element>();
+
+            Document doc = _uiDoc.Document;
+            Element sample = doc.GetElement(pickedRef);
+            if (sample == null)
+                return new List<Element>();
+
+            ElementId sampleTypeId = sample.GetTypeId();
+
+            var filter = new SameTypeSelectionFilter(sampleTypeId);
+
+            IList<Element> selected = _uiDoc.Selection.PickElementsByRectangle(
+                filter,
+                "Выделите рамкой элементы того же типа");
+
+            ReviMaxLog.Information($"Sample element id={sample.Id}, typeId={sampleTypeId}");
+            ReviMaxLog.Information($"Selected {selected.Count} elements of same type");
+
+            return selected;
         }
 
         public IList<Element>? GetSelectedElements(ISelectionFilter selectionFilter)

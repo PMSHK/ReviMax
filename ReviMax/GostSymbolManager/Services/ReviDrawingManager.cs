@@ -144,10 +144,10 @@ namespace ReviMax.GostSymbolManager.Services
                 FamilyInstance instance = doc.Create.NewFamilyInstance(start, symbol, activeView);
 
                 // Сначала длина
-                _revitManager.SetFamilyParameter(instance, "Length", length);
-                _revitManager.SetFamilyParameter(instance, "RM_OFFSET", lineSettings.Offset);
-                _revitManager.SetFamilyParameter(instance, "RM_STEP", lineSettings.Step);
-                _revitManager.SetFamilyParameter(instance, "RM_GLYPH_SIZE", lineSettings.GlyphSize);
+                _revitManager.SetInstanceParameter(instance, "Length", length);
+                _revitManager.SetInstanceParameter(instance, "RM_OFFSET", lineSettings.Offset);
+                _revitManager.SetInstanceParameter(instance, "RM_STEP", lineSettings.Step);
+                _revitManager.SetInstanceParameter(instance, "RM_GLYPH_SIZE", lineSettings.GlyphSize);
 
                 Parameter p = ParameterManager.GetParameter(instance, "RM_DC_COLOR");
                 p.Set($"{lineSettings.Color}");

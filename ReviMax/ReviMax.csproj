@@ -54,7 +54,6 @@
     <Folder Include="GostSymbolManager\DTO\Patterns\" />
     <Folder Include="GostSymbolManager\UI\Commands\" />
     <Folder Include="icons\" />
-    <Folder Include="NumeratorManager\Services\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FontAwesome.WPF" Version="4.7.0.9" />
