@@ -52,11 +52,13 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="GostSymbolManager\DTO\Patterns\" />
+    <Folder Include="GostSymbolManager\UI\Commands\" />
     <Folder Include="icons\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FontAwesome.WPF" Version="4.7.0.9" />
     <PackageReference Include="IndexRange" Version="1.1.0" />
+    <PackageReference Include="MaterialDesignInXamlToolkitAddOns" Version="0.0.63" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="Serilog.Sinks.Debug" Version="1.0.1" />
     <PackageReference Include="Serilog.Sinks.File" Version="4.1.0" />

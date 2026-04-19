@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -7,16 +8,13 @@ using System.Threading.Tasks;
 using System.Windows.Data;
 using FontAwesome.WPF;
 
-namespace ReviMax.GostSymbolManager.UI.Converters
+namespace ReviMax.UI.Converters
 {
-    public class BoolToIconConverter : IValueConverter
+    public class BoolToBrushConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is bool isLoaded)
-                return isLoaded ? FontAwesomeIcon.Check : FontAwesomeIcon.Times;
-
-            return FontAwesomeIcon.Times;
+            return value is bool b && b ? Brushes.LimeGreen : Brushes.IndianRed;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

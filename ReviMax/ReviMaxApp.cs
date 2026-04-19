@@ -12,6 +12,7 @@ using ReviMax.Core.Config;
 using ReviMax.Core.Utils.Config;
 using ReviMax.Core.Utils.Managers;
 using ReviMax.GostSymbolManager.Models.Annotations;
+using ReviMax.Revit.Core.Services;
 using ReviMax.Revit.Parameters;
 
 
@@ -46,26 +47,35 @@ namespace ReviMax
                 var SplitButtonData = new SplitButtonData("ReviMaxSplitBtn", "ReviMax Curve \n Tools");
                 var splitButton = panel.AddItem(SplitButtonData) as SplitButton;
 
+                
+                //var buttonData = new PushButtonData("CableSystemSymbolManagerBtn", "Run Cable \nSystem Manager",
+                //    System.Reflection.Assembly.GetExecutingAssembly().Location, "ReviMax.Commands.CableSystemSymbolCommand");
 
-                var buttonData = new PushButtonData("CableSystemSymbolManagerBtn", "Run Cable \nSystem Manager",
-                    System.Reflection.Assembly.GetExecutingAssembly().Location, "ReviMax.Commands.CableSystemSymbolCommand");
+                //string filePath = PathManager.GetFilePathInDirectory(PathManager.GetIconsPath(), "revit.png");
+                //BitmapImage image = imageLoader.Load(filePath);
+                //ReviMaxLog.Information($"Loaded image for button {image!=null}");
+                //if (image != null) {
+                //    buttonData.LargeImage = image; 
+                //    buttonData.Image = image;}
 
-                string filePath = PathManager.GetFilePathInDirectory(PathManager.GetIconsPath(), "revit.png");
-                BitmapImage image = imageLoader.Load(filePath);
-                ReviMaxLog.Information($"Loaded image for button {image!=null}");
-                if (image != null) {
-                    buttonData.LargeImage = image; 
-                    buttonData.Image = image;}
-
-                var deleteButton = new PushButtonData("DeleteSymbolsBtn", "Delete Symbols",
-                    System.Reflection.Assembly.GetExecutingAssembly().Location, "ReviMax.Commands.DeleteCableSystemSymbolCommand");
+                //var deleteButton = new PushButtonData("DeleteSymbolsBtn", "Delete Symbols",
+                //    System.Reflection.Assembly.GetExecutingAssembly().Location, "ReviMax.Commands.DeleteCableSystemSymbolCommand");
 
                 var cableSystemWindow = new PushButtonData("CableSystemWindowBtn", "Cable \nSystem Manager",
                     System.Reflection.Assembly.GetExecutingAssembly().Location, "ReviMax.Commands.OpenCableSystemWindow");
-
-                splitButton?.AddPushButton(buttonData);
-                splitButton?.AddPushButton(deleteButton);
+                
+                //splitButton?.AddPushButton(buttonData);
+                //splitButton?.AddPushButton(deleteButton);
                 splitButton?.AddPushButton(cableSystemWindow);
+
+                var numeratorButton = RevitButtonManager.CreateSmallPushButton("numeratorButton"
+                    , "Нумератор"
+                    , "ReviMax.Commands.OpenNumeratorWindow"
+                    , "Помогает нумеровать элементы в зависимости от их расположения"
+                    );
+                var utilsPanel = application.CreateRibbonPanel(tabName, "Utils");
+                utilsPanel.AddItem(numeratorButton);
+
                 //panel.AddStackedItems(buttonData, deleteButton);
                 return Result.Succeeded;
             }
