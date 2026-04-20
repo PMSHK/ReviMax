@@ -159,11 +159,12 @@ namespace ReviMax.GostSymbolManager.UI.ViewModel
             Dictionary<FamilyMode, IList<Element>> groupedElements = new();
             dispatcher.Request(
                 request: app => { 
-                    elements = selectionService.GetSelectionCableSystems();
-                    categories = RevitCategoriesService.ExtractCategoriesFromElements(elements);
+                    var selectedElements = selectionService.GetSelectionCableSystems();
+                    if (selectedElements == null || selectedElements.Count == 0) { return; }
+                    categories = RevitCategoriesService.ExtractCategoriesFromElements(selectedElements);
                     filter = filterFactory.GetFilter(categories);
-                    groupedElements = filterManager.GetCableElementsSelected(filter, elements);
-                    
+                    groupedElements = filterManager.GetCableElementsSelected(filter, selectedElements);
+                    elements = selectedElements;
                 },
                 callback: () => {
                     SelectedElements = groupedElements;

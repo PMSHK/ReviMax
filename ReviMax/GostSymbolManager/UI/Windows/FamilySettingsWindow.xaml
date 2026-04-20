@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ReviMax.UI.Windows"
         xmlns:fa="http://schemas.fontawesome.io/icons/"
-        xmlns:converter="clr-namespace:ReviMax.GostSymbolManager.UI.Converters"
+        xmlns:converter="clr-namespace:ReviMax.UI.Converters"
         mc:Ignorable="d"
         Title="Найстройка семейства" Height="450" Width="500">
     <Window.Resources>

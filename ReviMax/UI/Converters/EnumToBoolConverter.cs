@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows;
 
-namespace ReviMax.GostSymbolManager.UI.Converters
+namespace ReviMax.UI.Converters
 {
     public sealed class EnumToBoolConverter : IValueConverter
     {
