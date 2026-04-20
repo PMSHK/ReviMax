@@ -7,7 +7,7 @@
         xmlns:materialDesign ="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:orderConverter ="clr-namespace:ReviMax.UI.Converters"
         mc:Ignorable="d"
-        Title="Найстройка обозначения" Height="450" Width="500">
+        Title="Найстройка обозначения" Height="470" Width="500">
 
     <Window.Resources>
         <ResourceDictionary>
@@ -48,8 +48,11 @@
                         <TextBox Style="{StaticResource MaterialDesignTextBox}" materialDesign:HintAssist.Hint="Префикс" materialDesign:HintAssist.Foreground="{StaticResource Text}" Foreground="{StaticResource Text}" Margin="{StaticResource AllSidesMargin}" Text="{Binding Prefix}"  Height="25" />
                         <TextBox Style="{StaticResource MaterialDesignTextBox}" materialDesign:HintAssist.Hint="Основной текст" materialDesign:HintAssist.Foreground="{StaticResource Text}" Foreground="{StaticResource Text}" Margin="{StaticResource AllSidesMargin}" Text="{Binding GeneralText}" SelectedText="Основной текст"></TextBox>
                         <TextBox Style="{StaticResource MaterialDesignTextBox}" materialDesign:HintAssist.Hint="Суффикс" materialDesign:HintAssist.Foreground="{StaticResource Text}" Foreground="{StaticResource Text}" Margin="{StaticResource AllSidesMargin}" Text="{Binding Suffix}" SelectedText="Суффикс"></TextBox>
-                        <TextBox Style="{StaticResource MaterialDesignTextBox}" materialDesign:HintAssist.Hint="Разделитель" materialDesign:HintAssist.Foreground="{StaticResource Text}" Foreground="{StaticResource Text}" Margin="{StaticResource AllSidesMargin}" Text="{Binding Separator}" SelectedText="Суффикс"></TextBox>
-                        <TextBox Style="{StaticResource MaterialDesignTextBox}" materialDesign:HintAssist.Hint="Шаг" materialDesign:HintAssist.Foreground="{StaticResource Text}" Foreground="{StaticResource Text}" Margin="{StaticResource AllSidesMargin}" Text="{Binding Step}" SelectedText="Суффикс"></TextBox>
+                        <TextBox Style="{StaticResource MaterialDesignTextBox}" materialDesign:HintAssist.Hint="Разделитель" materialDesign:HintAssist.Foreground="{StaticResource Text}" Foreground="{StaticResource Text}" Margin="{StaticResource AllSidesMargin}" Text="{Binding Separator}" SelectedText="Разделитель"></TextBox>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" >
+                        <TextBox Style="{StaticResource MaterialDesignTextBox}" materialDesign:HintAssist.Hint="Начало" materialDesign:HintAssist.Foreground="{StaticResource Text}" Foreground="{StaticResource Text}" Margin="{StaticResource AllSidesMargin}" Text="{Binding StartValue}" SelectedText="Начало"></TextBox>
+                        <TextBox Style="{StaticResource MaterialDesignTextBox}" materialDesign:HintAssist.Hint="Шаг" materialDesign:HintAssist.Foreground="{StaticResource Text}" Foreground="{StaticResource Text}" Margin="{StaticResource AllSidesMargin}" Text="{Binding Step}" SelectedText="Шаг"></TextBox>
+                        </StackPanel>
                         <Button Style="{StaticResource RmButton}" Width="Auto" Height="Auto" Margin="{StaticResource AllSidesMargin}" Content="Переименовать" ToolTip="Переименовывает все выбранные объекты модели Revit согласно указанным параметрам" Command="{Binding RenameElements}"/>
                     </StackPanel>
                     <Border Grid.Column="1" BorderThickness="{StaticResource StandardBorderThickness}" BorderBrush="{StaticResource Border}" CornerRadius="{StaticResource WindowCornerRadius}">

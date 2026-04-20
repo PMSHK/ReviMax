@@ -47,7 +47,7 @@ namespace ReviMax.Revit.Core.Bridge
             catch (Exception ex)
             {
                 ReviMaxLog.Error("Error in ExternalEvent request", ex);
-                TaskDialog.Show("Error in ExternalEvent", ex.ToString());
+                //TaskDialog.Show("Error in ExternalEvent", ex.ToString());
             }
 
             try
@@ -66,7 +66,7 @@ namespace ReviMax.Revit.Core.Bridge
             catch (Exception ex)
             {
                 ReviMaxLog.Error("Error in ExternalEvent callback", ex);
-                TaskDialog.Show("Error in ExternalEvent callback", ex.ToString());
+                //TaskDialog.Show("Error in ExternalEvent callback", ex.ToString());
             }
             }
         }
