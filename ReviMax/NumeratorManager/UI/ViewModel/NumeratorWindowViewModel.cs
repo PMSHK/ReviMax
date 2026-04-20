@@ -96,6 +96,7 @@ namespace ReviMax.NumeratorManager.UI.ViewModel
         public String Suffix { get; set; } = String.Empty;
         public String Separator { get; set; } = String.Empty;
         public String Step { get; set; } = String.Empty;
+        public string StartValue {  get; set; } = String.Empty;
         public Comparison<Element> _comparer;
         public Comparison<Element> Comparer { get => _comparer!=null ? _comparer : (a,b)=>1;
             set {
@@ -160,6 +161,14 @@ namespace ReviMax.NumeratorManager.UI.ViewModel
             if(Elements == null || Elements.Length == 0 || SelectedParameter == null ||string.IsNullOrWhiteSpace(SelectedParameter?.Name)) return;
             ReviMaxLog.Information($"Elements for renaming: {Elements.Length}");
             int currNum = 1;
+            if (!string.IsNullOrWhiteSpace(StartValue)) 
+            {
+                if (int.TryParse(StartValue, out int value)) 
+                {
+                    currNum = value;
+                }
+            }
+            
             var parameterService = new RevitParametersManager();
 
             dispatcher.Request(
