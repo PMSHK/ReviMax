@@ -51,9 +51,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="CircuitAnalyzeManager\Services\" />
-    <Folder Include="CircuitAnalyzeManager\UI\ViewModel\" />
-    <Folder Include="CircuitAnalyzeManager\UI\Windows\" />
     <Folder Include="GostSymbolManager\DTO\Patterns\" />
     <Folder Include="GostSymbolManager\UI\Commands\" />
     <Folder Include="icons\" />

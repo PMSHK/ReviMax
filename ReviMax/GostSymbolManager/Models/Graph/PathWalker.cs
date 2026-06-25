@@ -11,18 +11,15 @@ namespace ReviMax.GostSymbolManager.Models.Graph
 {
     internal class PathWalker
     {
-        //HashSet<GraphEdge> visited;
         private readonly HashSet<AxisSegment> _visitedSegments;
 
         public PathWalker()
         {
-            //visited = new HashSet<GraphEdge>();
             _visitedSegments = new HashSet<AxisSegment>();
         }
 
         public PathWalker(HashSet<AxisSegment> visitedSegments)
         {
-            //visited = visitedEdges;
             _visitedSegments = visitedSegments ?? new HashSet<AxisSegment>();
         }
 
@@ -61,9 +58,6 @@ namespace ReviMax.GostSymbolManager.Models.Graph
 
             bool forward = curveParamDir.DotProduct(travelDir) > 0;
             double dist = step - carryIn;
-            //double clearance = _nodeClearance;
-            //if (NodeFilter.IsCornerNode(from)) clearance *= 1.5;
-            //if (NodeFilter.IsCornerNode(nextNode)) clearance *= 1.5;
 
             while (dist <= len - 1e-6)
             {

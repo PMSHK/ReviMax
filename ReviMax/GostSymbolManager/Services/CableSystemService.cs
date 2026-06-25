@@ -6,19 +6,23 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Xml.Linq;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
+using ReviMax.CircuitAnalyzeManager.Services;
 using ReviMax.Core.Config;
+using ReviMax.Core.Enums;
+using ReviMax.Core.Filters;
+using ReviMax.Core.Providers.Factory;
 using ReviMax.Core.Utils.Converter;
+using ReviMax.Core.Utils.Managers;
 using ReviMax.GostSymbolManager.DTO.Annotations;
-using ReviMax.GostSymbolManager.Filters;
 using ReviMax.GostSymbolManager.Mapper;
+using ReviMax.GostSymbolManager.Models;
 using ReviMax.GostSymbolManager.Models.Annotations;
 using ReviMax.GostSymbolManager.Models.Graph;
 using ReviMax.GostSymbolManager.Models.Graph.Filter;
 using ReviMax.GostSymbolManager.Models.Revit;
-using ReviMax.GostSymbolManager.Providers.Factory;
-using ReviMax.GostSymbolManager.Services.Utils;
 using ReviMax.Revit.Calculators;
 using ReviMax.Revit.Config.Storage;
 using ReviMax.Revit.Config.Storage.Model;
@@ -31,14 +35,13 @@ namespace ReviMax.GostSymbolManager.Services
     internal class CableSystemService
     {
         public Document Doc { get; }
-        //public CableSystemSettings Settings { get; set; } = new CableSystemSettings();
         public View ActiveView { get; set; }
         public CableSystemService(Document doc)
         {
             Doc = doc;
             ActiveView = Doc.GetActiveView();
         }
-        public void DrawCableSystemSymbols(ICableSystemCategory filter, CableSystemSettings _settings, Dictionary<FamilyMode,IList<Element>>? elements = null)
+        public void DrawCableSystemSymbols(ICableSystemCategory filter, CableSystemSettings _settings, List<ElementToDraw> elements)
         {
             ReviMaxLog.Information($"Drawing started. Settings is {_settings.ToString()}");
             string runID = GuidBuilder.CreateGuid();
@@ -52,56 +55,57 @@ namespace ReviMax.GostSymbolManager.Services
 
             CableSystemSettings? Settings = _settings;
 
-            Dictionary<FamilyMode, IList<Element>> cableSystems = new();
-            if (elements != null)
+            List<ElementToDraw> cableSystems = elements;
+            foreach (var elementSet in cableSystems)
             {
-                cableSystems = elements;
-            } else 
-            {
-                cableSystems = GetCableSystemsByCategory(filter);
-            }
-            foreach (var element in cableSystems)
-            {
-                var builder = new GraphBuilder(Tolerance);
-                ReviMaxLog.Information("Drawing service " + string.Join(", ", _settings.LineSettings.Select(l => l.Family.FamilyMode)));
-                var line = _settings.LineSettings.FirstOrDefault(line => line.Family.FamilyMode == element.Key);
-                var familyId = line.Family.Family.FamilyId;
-                var familyName = line.Family.Family.FamilyName;
-                var categoryId = line.CategoryId;
-
-                var list = ExtractAxes(element.Value);
-                Color color = ColorMapper.FromSymbolColor(line.Color);
-
-                //foreach (var segment in list)
-                //{
-                //    ReviMaxLog.Information($"CableSystemSymbolManager. Drawing detail line in view ID {ActiveView.Id} for curve. Document {Doc}");
-                //    drawingManager.DrawDetailLine(ActiveView, segment, runID, categoryId);
-                //}
-                var nodes = builder.Build(list);
-                GraphRunsExtractor extractor = new();
-                var runs = extractor.ExtractRuns(nodes, ActiveView);
-                var nodeFilter = new ParralelNodeFilter();
-                double tol = 50.0.MillimetersToFeet();
-                var filteredRuns = nodeFilter.FilterParallelDuplicateRuns(runs, ActiveView, tol, drawingManager);
-                //var symbol = ExtractFamilySymbol(familyId);
-                var symbol = ExtractFamilySymbolByName(familyName);
-                if (symbol != null)
+                 
+                foreach (var element in elementSet?.Elements)
                 {
-                    foreach (var run in filteredRuns)
+                    var builder = new GraphBuilder(Tolerance);
+                    ReviMaxLog.Information("Drawing service " + string.Join(", ", _settings.LineSettings.Select(l => l.Family.FamilyMode)));
+                    var line = _settings.LineSettings.FirstOrDefault(line => line.Family.FamilyMode == element.Key);
+                    var familyId = line.Family.Family.FamilyId;
+                    var familyName = line.Family.Family.FamilyName;
+                    var categoryId = line.CategoryId;
+
+                    SymbolColor additionalColor = elementSet.Type == RMDocumentType.LINKED ? elementSet.ConvertColor : line.Color;
+
+                    var list = ExtractAxes(element.Value);
+                    //Color color = ColorMapper.FromSymbolColor(line.Color);
+
+                    var nodes = builder.Build(list);
+                    GraphRunsExtractor extractor = new();
+                    var runs = extractor.ExtractRuns(nodes, ActiveView);
+                    var nodeFilter = new ParralelNodeFilter();
+                    double tol = 50.0.MillimetersToFeet();
+                    var filteredRuns = nodeFilter.FilterParallelDuplicateRuns(runs, ActiveView, tol, drawingManager);
+
+                    var symbol = ExtractFamilySymbolByName(familyName);
+                    ReviMaxLog.Information(
+                        $"Drawing {elementSet.Type} {element.Key}. Elements: {element.Value.Count}, " +
+                        $"axes: {list.Count}, nodes: {nodes.Count}, runs: {runs.Count}, " +
+                        $"filtered runs: {filteredRuns.Count}, symbol: {(symbol == null ? "<null>" : symbol.Name)}");
+
+                    if (symbol != null)
                     {
-                        drawingManager.DrawRunFamily(run, symbol, ActiveView, runID, line);
+                        foreach (var run in filteredRuns)
+                        {
+                            
+                            drawingManager.DrawRunFamily(run, symbol, ActiveView, runID, line, additionalColor, elementSet.Type);
+                        }
                     }
                 }
-                //TraverseGraphAndPlaceSymbols(nodes, drawingManager, familyId, color, runID, Settings);
             }
         }
 
 
-        public Dictionary<FamilyMode, IList<Element>> GetCableSystemsByCategory(ICableSystemCategory filter)
+        public Dictionary<FamilyMode, IList<Element>> GetCableSystemsByCategory(ICableSystemCategory filter, Document? doc = null)
         {
-            RevitFilterManager filterManager = new(Doc);
-            return filterManager.GetCableElementsAll(filter);
+            var targetDocInfo = doc ?? Doc;
+            RevitFilterManager filterManager = new (targetDocInfo);
+            return filterManager.GetCableElementsAll(filter,doc);
         }
+
         public Dictionary<FamilyMode, IList<Element>> GetSelectedCableSystemsByCategory(ICableSystemCategory filter, List<Element> elements)
         {
             RevitFilterManager filterManager = new(Doc);
@@ -269,37 +273,217 @@ namespace ReviMax.GostSymbolManager.Services
             return null;
         }
 
-        public void RedrawCableSystems(Dictionary<string, List<StoredInstanceInfo>> groupedStroredInfo, CableSystemSettings settings)
+        public void RedrawCableSystems(Dictionary<string, List<StoredInstanceInfo>> groupedStroredInfo, CableSystemSettings settings, ICableSystemCategory currentFilter, bool enableLinked)
         {
             CleanupManager cleanupManager = new(Doc);
-            List<HashSet<Element>> groupedCableSystemElements = new();
             foreach (var group in groupedStroredInfo)
             {
                 string runID = group.Key;
-                HashSet<Element> cableSystemElements = new();
+                if (group.Value == null || group.Value.Count == 0) continue;
 
-                if (group.Value != null && group.Value.Count>0)
+                ReviMaxLog.Information(
+                    $"Redraw run {runID}. Stored instances: {group.Value.Count}. " +
+                    $"Current stored: {group.Value.Count(info => info.DocumentType == RMDocumentType.CURRENT)}, " +
+                    $"Linked stored: {group.Value.Count(info => info.DocumentType == RMDocumentType.LINKED)}, " +
+                    $"Source ids: {string.Join(",", group.Value.SelectMany(info => info.SourceIds ?? []).Select(id => id.IntegerValue).Distinct())}");
+
+                var currentInfos = group.Value
+                    .Where(info => info.DocumentType == RMDocumentType.CURRENT)
+                    .Where(info => info.SourceIds != null)
+                    .ToList();
+
+                var currentSourceIds = currentInfos
+                    .SelectMany(info => info.SourceIds)
+                    .Distinct()
+                    .ToList();
+
+                var currentSourceUniqueIds = currentInfos
+                    .Where(info => info.SourceUniqueIds != null)
+                    .SelectMany(info => info.SourceUniqueIds)
+                    .Where(uniqueId => !string.IsNullOrWhiteSpace(uniqueId))
+                    .Distinct()
+                    .ToList();
+
+                var currentElements = ResolveCurrentElements(currentSourceUniqueIds, currentSourceIds);
+
+                ReviMaxLog.Information(
+                    $"Redraw run {runID}. Current unique ids before cleanup: {string.Join(",", currentSourceUniqueIds)}");
+
+                ReviMaxLog.Information(
+                    $"Redraw run {runID}. Current source ids before cleanup: {string.Join(",", currentSourceIds.Select(id => id.IntegerValue))}. " +
+                    $"Resolved current elements: {currentElements.Count}. " +
+                    $"Resolved ids: {string.Join(",", currentElements.Select(element => element.Id.IntegerValue))}");
+
+                var redrawFilter = GetRedrawFilter(group.Value, settings, currentElements, currentFilter);
+
+                cleanupManager.DeleteReviMaxElement(runID, new ElementId(group.Value[0].ViewId));
+
+                var elementsToDraw = new List<ElementToDraw>();
+
+                if (currentElements.Count > 0)
                 {
-                    cleanupManager.DeleteReviMaxElement(runID, new ElementId(group.Value[0].ViewId));
+                    var elementIds = currentElements.Select(el => el.Id).ToList();
 
-                    foreach (var info in group.Value)
+                    TransactionManager.StartTransaction(
+                        Doc,
+                        "showingElements",
+                        doc => RevitElementsManager.ShowElementsOnView(elementIds, doc.ActiveView));
+
+                    var groupedElements = GroupElementsByFilter(currentElements, redrawFilter);
+
+                    ReviMaxLog.Information(
+                        $"Redraw run {runID}. Current grouped elements: " +
+                        $"{string.Join(", ", groupedElements.Select(grouped => $"{grouped.Key}:{grouped.Value.Count}"))}");
+
+                    if (groupedElements.Count > 0)
                     {
-                        info.SourceIds?.ForEach(id => { var el = Doc.GetElement(id); cableSystemElements.Add(el); });
+                        elementsToDraw.Add(new ElementToDraw
+                        {
+                            LinkedDocumentInfo = new DocumentInfo(Doc),
+                            Elements = groupedElements,
+                            Type = RMDocumentType.CURRENT,
+                        });
                     }
                 }
-                groupedCableSystemElements.Add(cableSystemElements);
+
+                if (enableLinked) 
+                { 
+                    var collector = new ElementToDrawCollector(this);
+                    var linkedElementsToDraw = collector.GetLinkedElementsToDraw(Doc, redrawFilter);
+                    elementsToDraw.AddRange(linkedElementsToDraw);
+                }
+
+                ReviMaxLog.Information(
+                    $"Redraw run {runID}. Elements to draw: " +
+                    $"{string.Join(", ", elementsToDraw.Select(set => $"{set.Type}:{set.Elements?.Sum(grouped => grouped.Value.Count) ?? 0}"))}");
+
+                if (elementsToDraw.Count == 0)
+                    continue;
+
+                DrawCableSystemSymbols(redrawFilter, settings, elementsToDraw);
+
+                if (currentElements.Count > 0)
+                {
+                    var elementIds = currentElements.Select(el => el.Id).ToList();
+
+                    TransactionManager.StartTransaction(
+                        Doc,
+                        "hidingElements",
+                        doc => RevitElementsManager.HideElementsOnView(elementIds, doc.ActiveView));
+                }
+            }
+        }
+
+        private List<Element> ResolveCurrentElements(List<string> uniqueIds, List<ElementId> elementIds)
+        {
+            var result = new List<Element>();
+
+            if (uniqueIds != null && uniqueIds.Count > 0)
+            {
+                result.AddRange(uniqueIds
+                    .Select(uniqueId => Doc.GetElement(uniqueId))
+                    .Where(element => element != null)
+                    .Where(element => element.IsValidObject));
             }
 
-            foreach(var group in groupedCableSystemElements)
+            if (elementIds != null && elementIds.Count > 0)
             {
-                List<ElementId> elementIds = group.Select(el => el.Id).ToList();
-                TransactionManager.StartTransaction(Doc, "showingElements", (doc) => RevitElementsManager.ShowElementsOnView(elementIds, doc.ActiveView));
-                var groupedElements = RevitFilterService.GetGroupedElementsByFamilyGroup(Doc, group.ToList());
-                ReviMaxLog.Information($"Redrawing cable systems. Groups to redraw: {groupedStroredInfo.Count}. Total elements to redraw: {group.Count}. Document {Doc}");
-                DrawCableSystemSymbols(null, settings, groupedElements);
-                ReviMaxLog.Information($"Redrawing completed. Hiding source elements. Document {Doc}");
-                TransactionManager.StartTransaction(Doc, "showingElements", (doc) => RevitElementsManager.HideElementsOnView(elementIds, doc.ActiveView));
+                result.AddRange(elementIds
+                    .Select(id => Doc.GetElement(id))
+                    .Where(element => element != null)
+                    .Where(element => element.IsValidObject));
             }
+
+            return result
+                    .GroupBy(el => el.Id.IntegerValue)
+                    .Select(g => g.First())
+                    .ToList();
+        }
+
+        private ICableSystemCategory GetRedrawFilter(
+            List<StoredInstanceInfo> storedInfos,
+            CableSystemSettings settings,
+            List<Element> currentElements,
+            ICableSystemCategory fallbackFilter)
+        {
+            var modes = ResolveRedrawFamilyModes(storedInfos, settings, currentElements);
+
+            ReviMaxLog.Information(
+                $"Redraw filter modes: {(modes.Count == 0 ? "<fallback>" : string.Join(",", modes))}");
+
+            if (modes.Contains(FamilyMode.TRAY) && modes.Contains(FamilyMode.CONDUITS))
+                return new AllCableFilter();
+
+            if (modes.Contains(FamilyMode.TRAY))
+                return new CableTrayFilter();
+
+            if (modes.Contains(FamilyMode.CONDUITS))
+                return new ConduitFilter();
+
+            return fallbackFilter ?? new AllCableFilter();
+        }
+
+        private HashSet<FamilyMode> ResolveRedrawFamilyModes(
+            List<StoredInstanceInfo> storedInfos,
+            CableSystemSettings settings,
+            List<Element> currentElements)
+        {
+            var result = new HashSet<FamilyMode>();
+
+            var symbolNames = storedInfos
+                .Select(info => info.SymbolName)
+                .Where(symbolName => !string.IsNullOrWhiteSpace(symbolName))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            foreach (var symbolName in symbolNames)
+            {
+                var line = settings.LineSettings.FirstOrDefault(line =>
+                    string.Equals(line.Family.Family.FamilyName, symbolName, StringComparison.OrdinalIgnoreCase));
+
+                if (line != null)
+                {
+                    result.Add(line.Family.FamilyMode);
+                }
+            }
+
+            foreach (var element in currentElements.Where(element => element?.Category != null))
+            {
+                var category = element.Category.BuiltInCategory;
+                if (category == BuiltInCategory.OST_CableTray || category == BuiltInCategory.OST_CableTrayFitting)
+                {
+                    result.Add(FamilyMode.TRAY);
+                }
+
+                if (category == BuiltInCategory.OST_Conduit || category == BuiltInCategory.OST_ConduitFitting)
+                {
+                    result.Add(FamilyMode.CONDUITS);
+                }
+            }
+
+            return result;
+        }
+
+        private Dictionary<FamilyMode, IList<Element>> GroupElementsByFilter(List<Element> elements, ICableSystemCategory filter)
+        {
+            if (elements == null || elements.Count == 0 || filter == null) return [];
+
+            var result = new Dictionary<FamilyMode, IList<Element>>();
+            foreach (var group in filter.GetGroupedCategories())
+            {
+                var categories = group.Value.ToHashSet();
+                var groupElements = elements
+                    .Where(element => element?.Category != null)
+                    .Where(element => categories.Contains(element.Category.BuiltInCategory))
+                    .ToList();
+
+                if (groupElements.Count > 0)
+                {
+                    result[group.Key] = groupElements;
+                }
+            }
+
+            return result;
         }
     }
 

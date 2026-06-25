@@ -1,17 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ReviMax.Core.Utils.Managers;
-using System.IO;
-using ReviMax.Core.Utils.Config;
 using Autodesk.Revit.DB;
-using ReviMax.Revit.Core.Services;
-using ReviMax.GostSymbolManager.Models.Annotations;
 using ReviMax.Core.Config;
+using ReviMax.Core.Enums;
+using ReviMax.Core.Utils.Config;
+using ReviMax.Core.Utils.Managers;
 using ReviMax.GostSymbolManager.DTO.Annotations;
 using ReviMax.GostSymbolManager.Mapper;
+using ReviMax.GostSymbolManager.Models.Annotations;
+using ReviMax.Revit.Core.Services;
+using ReviMax.Revit.Model;
 
 namespace ReviMax.GostSymbolManager.Services
 {
@@ -24,7 +26,7 @@ namespace ReviMax.GostSymbolManager.Services
         public ReviLineService(Document doc)
         {
             _doc = doc;
-            _lines= new RevitFilterManager(doc).GetLineStyles();
+            _lines= new RevitFilterManager(Doc).GetLineStyles();
         }
         public ReviLineService(Document doc, List<Category>? lineStyles)
         {

@@ -17,6 +17,7 @@
                 <ResourceDictionary Source="/ReviMax;component/GostSymbolManager/UI/UserControl/Resources/RedButtonStyle.xaml"/>
                 <ResourceDictionary Source="/ReviMax;component/GostSymbolManager/UI/UserControl/Resources/RmListStyle.xaml"/>
                 <ResourceDictionary Source="/ReviMax;component/GostSymbolManager/UI/UserControl/Resources/RmRadioButtonStyle.xaml"/>
+                <ResourceDictionary Source="/ReviMax;component/UI/Templates/RmCheckBoxStyle.xaml"/>
                 <ResourceDictionary Source="/ReviMax;component/GostSymbolManager/UI/UserControl/Resources/CableSystemsElementPanelTemplate.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
@@ -57,6 +58,10 @@
                         <RadioButton Style="{StaticResource RmRadio}" Content="Лотки" IsChecked="{Binding CurrentFilterMode, Mode=TwoWay, Converter={StaticResource EnumToBool}, ConverterParameter=TRAYS}"/>
                         <RadioButton Style="{StaticResource RmRadio}" Content="Трубы" IsChecked="{Binding CurrentFilterMode, Mode=TwoWay, Converter={StaticResource EnumToBool}, ConverterParameter=CONDUITS}"/>
                         <RadioButton Style="{StaticResource RmRadio}" Content="Выбрать на виде" IsChecked="{Binding CurrentFilterMode, Mode=TwoWay, Converter={StaticResource EnumToBool}, ConverterParameter=SELECTED}"/>
+                        <StackPanel Orientation="Vertical">
+                            <CheckBox Style="{StaticResource RmCheckBox}" Content="Связанные файлы" IsChecked="{Binding EnableLinkedDocuments, Mode=TwoWay}" Margin="{StaticResource BotMargin}" />
+                            <CheckBox Style="{StaticResource RmCheckBox}" Content="Изолировано связи" IsChecked="{Binding JustLinkedDocuments, Mode=TwoWay}"/>
+                        </StackPanel>
                     </StackPanel>
                 </DockPanel>
             </Border>

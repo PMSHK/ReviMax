@@ -48,13 +48,19 @@ namespace ReviMax.CircuitAnalyzeManager.Models.Graph
                 // Добавляем ID ребра в соответствующие узлы
                 if (Nodes.TryGetValue(edge.StartNodeId, out var startNode))
                 {
-                    startNode.EdgeIds.Add(edge.Id);
-                    ReviMaxLog.Information($"Added edge ID {edge.Id} to start node {startNode.Id}");
+                    if (!startNode.EdgeIds.Contains(edge.Id))
+                    {
+                        startNode.EdgeIds.Add(edge.Id);
+                        ReviMaxLog.Information($"Added edge ID {edge.Id} to start node {startNode.Id}");
+                    }
                 }
                 if (Nodes.TryGetValue(edge.EndNodeId, out var endNode))
                 {
-                    endNode.EdgeIds.Add(edge.Id);
-                    ReviMaxLog.Information($"Added edge ID {edge.Id} to end node {endNode.Id}");
+                    if (!endNode.EdgeIds.Contains(edge.Id))
+                    {
+                        endNode.EdgeIds.Add(edge.Id);
+                        ReviMaxLog.Information($"Added edge ID {edge.Id} to end node {endNode.Id}");
+                    }
                 }
                 ReviMaxLog.Information($"Circuit edge added: {edge.Id}");
             }

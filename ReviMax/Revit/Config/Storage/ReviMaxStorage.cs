@@ -11,6 +11,7 @@ namespace ReviMax.Revit.Config.Storage
     using Autodesk.Revit.DB;
     using Autodesk.Revit.DB.ExtensibleStorage;
     using ReviMax.Core.Config;
+    using ReviMax.GostSymbolManager.Models;
     using ReviMax.Revit.Config.Storage.Model;
     using ReviMax.Revit.Core.Services;
 
@@ -23,6 +24,8 @@ namespace ReviMax.Revit.Config.Storage
         private const string FieldSourceId = "SourceElementId";
         private const string FieldViewId = "ViewId";
         private const string FieldSourceIds = "SourceElementsIds";
+        private const string TypeSeparator = "::";
+        private const string UniqueIdSeparator = "|";
 
         private static Schema GetOrCreateSchema()
         {
@@ -42,19 +45,19 @@ namespace ReviMax.Revit.Config.Storage
             return builder.Finish();
         }
 
-        public static void Stamp(Element e, string runId, string type, ElementId sourceId, ElementId viewId)
+        public static void Stamp(Element e, string runId, string type, ElementId sourceId, ElementId viewId, RMDocumentType documentType = RMDocumentType.CURRENT)
         {
             Schema schema = GetOrCreateSchema();
             var entity = new Entity(schema);
             entity.Set(schema.GetField(FieldRunId), runId);
-            entity.Set(schema.GetField(FieldType), type);
+            entity.Set(schema.GetField(FieldType), BuildStoredType(type, documentType));
             entity.Set(schema.GetField(FieldSourceId), sourceId.IntegerValue);
             entity.Set(schema.GetField(FieldViewId), viewId.IntegerValue);
 
             e.SetEntity(entity);
         }
 
-        public static void Stamp(Element e, string runId, string type, List<ElementId> sourceIds, ElementId viewId)
+        public static void Stamp(Element e, string runId, string type, List<ElementId> sourceIds, ElementId viewId, RMDocumentType documentType = RMDocumentType.CURRENT)
         {
             List<int> ids = sourceIds
                 .Where(id => id != null && id != ElementId.InvalidElementId)
@@ -68,7 +71,45 @@ namespace ReviMax.Revit.Config.Storage
             Schema schema = GetOrCreateSchema();
             var entity = new Entity(schema);
             entity.Set(schema.GetField(FieldRunId), runId);
-            entity.Set(schema.GetField(FieldType), type);
+            entity.Set(schema.GetField(FieldType), BuildStoredType(type, documentType));
+            entity.Set(schema.GetField(FieldSourceId), ids[0]);
+            entity.Set(schema.GetField(FieldViewId), viewId.IntegerValue);
+            entity.Set<IList<int>>(schema.GetField(FieldSourceIds), ids);
+
+            e.SetEntity(entity);
+        }
+
+        public static void Stamp(Element e, string runId, string type, List<Element> sourceElements, ElementId viewId, RMDocumentType documentType = RMDocumentType.CURRENT)
+        {
+            if (sourceElements == null)
+                throw new ArgumentNullException(nameof(sourceElements));
+
+            var validElements = sourceElements
+                .Where(element => element != null && element.Id != ElementId.InvalidElementId)
+                .GroupBy(element => element.Id.IntegerValue)
+                .Select(group => group.First())
+                .ToList();
+
+            var sourceIds = validElements.Select(element => element.Id).ToList();
+            List<int> ids = sourceIds
+                .Where(id => id != null && id != ElementId.InvalidElementId)
+                .Select(id => id.IntegerValue)
+                .Distinct()
+                .ToList();
+
+            if (ids.Count == 0)
+                throw new ArgumentException("sourceElements does not contain valid ids", nameof(sourceElements));
+
+            var sourceUniqueIds = validElements
+                .Select(element => element.UniqueId)
+                .Where(uniqueId => !string.IsNullOrWhiteSpace(uniqueId))
+                .Distinct()
+                .ToList();
+
+            Schema schema = GetOrCreateSchema();
+            var entity = new Entity(schema);
+            entity.Set(schema.GetField(FieldRunId), runId);
+            entity.Set(schema.GetField(FieldType), BuildStoredType(type, documentType, sourceUniqueIds));
             entity.Set(schema.GetField(FieldSourceId), ids[0]);
             entity.Set(schema.GetField(FieldViewId), viewId.IntegerValue);
             entity.Set<IList<int>>(schema.GetField(FieldSourceIds), ids);
@@ -171,6 +212,7 @@ namespace ReviMax.Revit.Config.Storage
             List<StoredInstanceInfo> result = new();
 
             Field runIdField = schema.GetField(FieldRunId);
+            Field typeField = schema.GetField(FieldType);
             Field viewIdField = schema.GetField(FieldViewId);
             Field sourceIdsField = schema.GetField(FieldSourceIds);
 
@@ -184,13 +226,17 @@ namespace ReviMax.Revit.Config.Storage
 
                 var rawIds = ent.Get<IList<int>>(sourceIdsField) ?? new List<int>();
                 var runId = ent.Get<string>(runIdField);
+                var storedType = ent.Get<string>(typeField);
 
                 result.Add(new StoredInstanceInfo
                 {
                     InstanceId = e.Id,
-                    RunId = ent.Get<string>(runIdField),
+                    RunId = runId,
                     ViewId = storedViewId,
-                    SourceIds = rawIds.Select(i => new ElementId(i)).ToList()
+                    SourceIds = rawIds.Select(i => new ElementId(i)).ToList(),
+                    DocumentType = ParseDocumentType(storedType),
+                    SourceUniqueIds = ParseSourceUniqueIds(storedType),
+                    SymbolName = ParseSymbolName(storedType)
                 });
             }
 
@@ -202,8 +248,68 @@ namespace ReviMax.Revit.Config.Storage
             List<ElementId> result = new();
             var instances = GetInstanceByActiveView(activeView);
             return instances.Where(i => string.Equals(i.Key, runId, StringComparison.OrdinalIgnoreCase))
-                .SelectMany(m => m.Value).SelectMany(l=> l.SourceIds).Distinct().ToList();
+                .SelectMany(m => m.Value)
+                .Where(info => info.DocumentType == RMDocumentType.CURRENT)
+                .SelectMany(l=> l.SourceIds)
+                .Distinct()
+                .ToList();
 
+        }
+
+        private static string BuildStoredType(string type, RMDocumentType documentType, IEnumerable<string>? sourceUniqueIds = null)
+        {
+            var uniqueIds = sourceUniqueIds?
+                .Where(uniqueId => !string.IsNullOrWhiteSpace(uniqueId))
+                .Distinct()
+                .ToList() ?? new List<string>();
+
+            if (uniqueIds.Count == 0)
+                return $"{documentType}{TypeSeparator}{type}";
+
+            return $"{documentType}{TypeSeparator}{type}{TypeSeparator}{string.Join(UniqueIdSeparator, uniqueIds)}";
+        }
+
+        private static RMDocumentType ParseDocumentType(string storedType)
+        {
+            if (string.IsNullOrWhiteSpace(storedType)) return RMDocumentType.CURRENT;
+
+            string rawType = storedType;
+            int separatorIndex = storedType.IndexOf(TypeSeparator, StringComparison.Ordinal);
+            if (separatorIndex >= 0)
+            {
+                rawType = storedType.Substring(0, separatorIndex);
+            }
+
+            return Enum.TryParse(rawType, out RMDocumentType documentType)
+                ? documentType
+                : RMDocumentType.CURRENT;
+        }
+
+        private static string ParseSymbolName(string storedType)
+        {
+            if (string.IsNullOrWhiteSpace(storedType)) return string.Empty;
+
+            var parts = storedType.Split(new[] { TypeSeparator }, StringSplitOptions.None);
+            if (parts.Length >= 2 && Enum.TryParse(parts[0], out RMDocumentType _))
+            {
+                return parts[1];
+            }
+
+            return parts[0];
+        }
+
+        private static List<string> ParseSourceUniqueIds(string storedType)
+        {
+            if (string.IsNullOrWhiteSpace(storedType)) return new List<string>();
+
+            var parts = storedType.Split(new[] { TypeSeparator }, StringSplitOptions.None);
+            if (parts.Length < 3) return new List<string>();
+
+            return parts[2]
+                .Split(new[] { UniqueIdSeparator }, StringSplitOptions.RemoveEmptyEntries)
+                .Where(uniqueId => !string.IsNullOrWhiteSpace(uniqueId))
+                .Distinct()
+                .ToList();
         }
 
     }

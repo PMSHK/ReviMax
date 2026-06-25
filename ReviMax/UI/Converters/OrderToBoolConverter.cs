@@ -19,7 +19,7 @@ namespace ReviMax.UI.Converters
             var stringValue = value.ToString();
             var targetValue = parameter.ToString();
 
-            if(!stringValue.Equals("X") || !stringValue.Equals("Y")) return false;
+            if(!stringValue.Equals("X") || !stringValue.Equals("Y") || !stringValue.Equals("Z")) return false;
 
             return string.Equals(stringValue, targetValue, StringComparison.Ordinal);
         }

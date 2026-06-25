@@ -17,7 +17,6 @@ using ReviMax.Core.Utils.Converter;
 using ReviMax.Core.Utils.Managers;
 using ReviMax.GostSymbolManager.DTO.Annotations;
 using ReviMax.GostSymbolManager.Mapper;
-using ReviMax.GostSymbolManager.Mapper;
 using ReviMax.GostSymbolManager.Models.Annotations;
 using ReviMax.GostSymbolManager.Services;
 using ReviMax.GostSymbolManager.UI.Commands;
@@ -25,6 +24,7 @@ using ReviMax.Revit.Config.Storage;
 using ReviMax.Revit.Core.Bridge;
 using ReviMax.Revit.Core.Bridge.Event;
 using ReviMax.Revit.Core.Services;
+using ReviMax.Revit.Model;
 using ReviMax.UI.Windows;
 
 namespace ReviMax.GostSymbolManager.UI.ViewModel
@@ -53,11 +53,6 @@ namespace ReviMax.GostSymbolManager.UI.ViewModel
                     ReviMaxLog.Information($"LineSettings is null: {LineSettings == null}, value is null: {value == null}, LineSettings {LineSettings?.ToString()}");
                     if (LineSettings != null && !string.Equals(LineSettings?.Name, value?.Name, StringComparison.Ordinal))
                     {
-                        //var foudnLine = lineService.BuildReviLine(value?.Name, LineSettings.Family.FamilyMode);
-                        //_tmpLine = foudnLine?.Clone() as ReviLine;
-                        //_tmpLine?.Offset = LineSettings.Offset;
-                        //_tmpLine?.Step = LineSettings.Step;
-                        //_tmpLine?.GlyphSize = LineSettings.GlyphSize;
                         if (value != null) { 
                         UpdateReviLine(value);
                         }

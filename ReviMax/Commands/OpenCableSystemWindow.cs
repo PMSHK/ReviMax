@@ -41,7 +41,6 @@ namespace ReviMax.Commands
             window.Activate();
             window.Focus();
 
-            //TaskDialog.Show("ReviMax", "Не выбраны категории ReviMax элементов.");
             return Result.Succeeded;
         }
     }

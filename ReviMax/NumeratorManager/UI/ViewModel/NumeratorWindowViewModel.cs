@@ -35,8 +35,8 @@ namespace ReviMax.NumeratorManager.UI.ViewModel
             {
                 if (_currentOrder != value)
                 {
-                    ReviMaxLog.Information($"Order changed to: {_currentOrder}");
                     _currentOrder = value;
+                    ReviMaxLog.Information($"Order changed to: {_currentOrder}");
                     XYZCompareService.Direction = _currentOrder;
                     Comparer = XYZCompareService.ElementComparer;
                     if(Elements!= null && Elements.Length > 0) Array.Sort(Elements, Comparer);

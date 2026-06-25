@@ -56,19 +56,29 @@ namespace ReviMax.GostSymbolManager.Services
         public int DeleteReviMaxElementsByRunId(string runId, Dictionary<string,List<StoredInstanceInfo>> elements)
         {
             if (string.IsNullOrEmpty(runId) || elements == null) return 0;
-            List<ElementId> cableSystemElements = new();
+            List<StoredInstanceInfo> cableSystemElements = new();
             List<ElementId> elementsToDelete = new();
             foreach (var element in elements.Where(el=> el.Key == runId))
             {
-                cableSystemElements.AddRange(element.Value.SelectMany(x => x.SourceIds).Distinct().ToList());
-                elementsToDelete.AddRange(element.Value.Select(x=> x.InstanceId).ToList());
+                cableSystemElements.AddRange(element.Value);
             }
 
-            if(elementsToDelete.Count == 0) return 0;
+            if(cableSystemElements.Count == 0) return 0;
             TransactionManager.StartTransaction(Doc, "Delete ReviMax Transaction", (doc =>
             {
-                doc.Delete(elementsToDelete);
-                RevitElementsManager.ShowElementsOnView(cableSystemElements, doc.ActiveView);
+                foreach (var element in cableSystemElements)
+                {
+                    if (element.DocumentType == Models.RMDocumentType.LINKED)
+                    {
+                        doc.Delete(element.InstanceId);
+                    }
+                    if (element.DocumentType == Models.RMDocumentType.CURRENT)
+                    {
+                        doc.Delete(element.InstanceId);
+                        elementsToDelete.AddRange(element.SourceIds);
+                    }
+                }
+                RevitElementsManager.ShowElementsOnView(elementsToDelete, doc.ActiveView);
             }));
             return elementsToDelete.Count;
         }

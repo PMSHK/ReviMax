@@ -14,9 +14,8 @@ namespace ReviMax.CircuitAnalyzeManager.Models.Graph
         public string StartNodeId { get; set; } = string.Empty;
         public string EndNodeId { get; set; } = string.Empty;
         public List<string> CableIds { get; set; } = [];
-        public EquipmentNode HostElement { get; set; } = new();
-        //public ElementId? HostElementId { get; set; } // ID кабельного лотка или трубы, в которой проложены кабели
-        //public string HostUniqueId { get; set; } = string.Empty; // UniqueID кабельного лотка или трубы, в которой проложены кабели
-        public double Length { get ; set; } = double.MaxValue;
+        public List<RouteElementInfo> RunElements { get; set; } = new();
+        public List<Curve> Curves { get; set; } = new();
+        public double Length => RunElements.Sum(e => e.Length);
     }
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ReviMax.GostSymbolManager.Models.Annotations;
+using ReviMax.Core.Enums;
 
 namespace ReviMax.GostSymbolManager.DTO.Annotations
 {

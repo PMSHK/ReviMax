@@ -46,14 +46,15 @@ namespace ReviMax.CircuitAnalyzeManager.Models.Graph
             return newNode;
         }
 
-        private CircuitGraphEdge GetOrCreateEdge(CircuitGraphNode startNode, CircuitGraphNode endNode, EquipmentNode hostElement)
+        private CircuitGraphEdge GetOrCreateEdge(CircuitGraphNode startNode, CircuitGraphNode endNode, RouteElementInfo hostElement)
         {
-            foreach (var edge in Graph.Edges)
+            foreach (var edge in Graph.Edges.Values)
             {
-                if ((edge.Value.StartNodeId == startNode.Id && edge.Value.EndNodeId == endNode.Id) ||
-                    (edge.Value.StartNodeId == endNode.Id && edge.Value.EndNodeId == startNode.Id))
+                if ((edge.StartNodeId == startNode.Id && edge.EndNodeId == endNode.Id) ||
+                    (edge.StartNodeId == endNode.Id && edge.EndNodeId == startNode.Id))
                 {
-                    return edge.Value;
+                    edge.RunElements.Add(hostElement);
+                    return edge;
                 }
             }
             var newEdge = new CircuitGraphEdge
@@ -61,12 +62,9 @@ namespace ReviMax.CircuitAnalyzeManager.Models.Graph
                 Id = Guid.NewGuid().ToString(),
                 StartNodeId = startNode.Id,
                 EndNodeId = endNode.Id,
-                HostElement = hostElement,
-                Length = startNode.Point.DistanceTo(endNode.Point),
+                RunElements = new List<RouteElementInfo> { hostElement },
 
             };
-            startNode.EdgeIds.Add(newEdge.Id);
-            endNode.EdgeIds.Add(newEdge.Id);
             Graph.AddEdge(newEdge);
             return newEdge;
         }

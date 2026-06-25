@@ -7,7 +7,7 @@ using ReviMax.Core.Config;
 
 namespace ReviMax.Handlers
 {
-    internal class ResultHandler<T>
+    public class ResultHandler<T>
     {
         public bool IsSuccess { get; } = false;
         public T Value { get; } = default;
