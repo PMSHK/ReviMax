@@ -7,7 +7,7 @@
         xmlns:materialDesign ="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:orderConverter ="clr-namespace:ReviMax.UI.Converters"
         mc:Ignorable="d"
-        Title="Найстройка обозначения" Height="470" Width="500">
+        Title="Найстройка обозначения" Height="500" Width="500">
 
     <Window.Resources>
         <ResourceDictionary>
@@ -45,6 +45,7 @@
 
                         <RadioButton  Margin="{StaticResource AllSidesMargin}" Content="Относительно X" Foreground="{StaticResource Text}" IsChecked="{Binding CurrentOrder, Mode=TwoWay, Converter={StaticResource OrderConverter}, ConverterParameter=X}"/>
                         <RadioButton  Margin="{StaticResource AllSidesMargin}" Content="Относительно Y" Foreground="{StaticResource Text}" IsChecked="{Binding CurrentOrder, Mode=TwoWay, Converter={StaticResource OrderConverter}, ConverterParameter=Y}"/>
+                        <RadioButton  Margin="{StaticResource AllSidesMargin}" Content="Относительно Z" Foreground="{StaticResource Text}" IsChecked="{Binding CurrentOrder, Mode=TwoWay, Converter={StaticResource OrderConverter}, ConverterParameter=Z}"/>
                         <TextBox Style="{StaticResource MaterialDesignTextBox}" materialDesign:HintAssist.Hint="Префикс" materialDesign:HintAssist.Foreground="{StaticResource Text}" Foreground="{StaticResource Text}" Margin="{StaticResource AllSidesMargin}" Text="{Binding Prefix}"  Height="25" />
                         <TextBox Style="{StaticResource MaterialDesignTextBox}" materialDesign:HintAssist.Hint="Основной текст" materialDesign:HintAssist.Foreground="{StaticResource Text}" Foreground="{StaticResource Text}" Margin="{StaticResource AllSidesMargin}" Text="{Binding GeneralText}" SelectedText="Основной текст"></TextBox>
                         <TextBox Style="{StaticResource MaterialDesignTextBox}" materialDesign:HintAssist.Hint="Суффикс" materialDesign:HintAssist.Foreground="{StaticResource Text}" Foreground="{StaticResource Text}" Margin="{StaticResource AllSidesMargin}" Text="{Binding Suffix}" SelectedText="Суффикс"></TextBox>

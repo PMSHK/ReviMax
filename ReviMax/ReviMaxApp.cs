@@ -4,8 +4,6 @@ using System.Reflection;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Autodesk.Revit.DB;
-
-//using Autodesk.Revit.Creation;
 using Autodesk.Revit.DB.Events;
 using Autodesk.Revit.UI;
 using ReviMax.Core.Config;
@@ -21,10 +19,8 @@ namespace ReviMax
     public class ReviMaxApp : IExternalApplication
     {
         private static string iconsPath;
-        //private static ILogger logger;
         public Result OnStartup(UIControlledApplication application)
         {
-            //logger = MicrosoftLogger.CreateLogger<ReviMaxApp>();
             
             PathManager.Initialize();
             ReviMaxLog.Init();
@@ -35,9 +31,6 @@ namespace ReviMax
             ReviMaxLog.Information("ReviMaxApp OnStartup started.");
             try
             {
-                //iconsPath = Path.Combine(
-                //    Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
-                //    "Icons");
                 iconsPath = PathManager.GetIconsPath();
 
                 string tabName = "ReviMax";
@@ -47,25 +40,9 @@ namespace ReviMax
                 var SplitButtonData = new SplitButtonData("ReviMaxSplitBtn", "ReviMax Curve \n Tools");
                 var splitButton = panel.AddItem(SplitButtonData) as SplitButton;
 
-                
-                //var buttonData = new PushButtonData("CableSystemSymbolManagerBtn", "Run Cable \nSystem Manager",
-                //    System.Reflection.Assembly.GetExecutingAssembly().Location, "ReviMax.Commands.CableSystemSymbolCommand");
-
-                //string filePath = PathManager.GetFilePathInDirectory(PathManager.GetIconsPath(), "revit.png");
-                //BitmapImage image = imageLoader.Load(filePath);
-                //ReviMaxLog.Information($"Loaded image for button {image!=null}");
-                //if (image != null) {
-                //    buttonData.LargeImage = image; 
-                //    buttonData.Image = image;}
-
-                //var deleteButton = new PushButtonData("DeleteSymbolsBtn", "Delete Symbols",
-                //    System.Reflection.Assembly.GetExecutingAssembly().Location, "ReviMax.Commands.DeleteCableSystemSymbolCommand");
-
                 var cableSystemWindow = new PushButtonData("CableSystemWindowBtn", "Cable \nSystem Manager",
                     System.Reflection.Assembly.GetExecutingAssembly().Location, "ReviMax.Commands.OpenCableSystemWindow");
-                
-                //splitButton?.AddPushButton(buttonData);
-                //splitButton?.AddPushButton(deleteButton);
+
                 splitButton?.AddPushButton(cableSystemWindow);
 
                 var numeratorButton = RevitButtonManager.CreateSmallPushButton("numeratorButton"
@@ -76,7 +53,12 @@ namespace ReviMax
                 var utilsPanel = application.CreateRibbonPanel(tabName, "Utils");
                 utilsPanel.AddItem(numeratorButton);
 
-                //panel.AddStackedItems(buttonData, deleteButton);
+                var AnalyzerButton = RevitButtonManager.CreateSmallPushButton("analyzerButton"
+                   , "Анализатор"
+                   , "ReviMax.Commands.OpenCableSystemAnalyzerWindow"
+                   , "Позволяет построить граф системы кабелей, а также проставить метки, посчитать загруженость трасс и построить кабельный журнал"
+                   );
+                utilsPanel.AddItem(AnalyzerButton);
                 return Result.Succeeded;
             }
             catch (Exception ex)
@@ -88,7 +70,6 @@ namespace ReviMax
 
         public Result OnShutdown(UIControlledApplication application)
         {
-            // Код очистки ресурсов при закрытии Revit
             return Result.Succeeded;
         }
 

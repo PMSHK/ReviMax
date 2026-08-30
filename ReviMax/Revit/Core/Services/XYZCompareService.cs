@@ -26,8 +26,6 @@ namespace ReviMax.Revit.Core.Services
 
         public static Comparison<Element> ElementComparer => (a, b) =>
         {
-            //XYZ aPoint = a.Location as LocationPoint != null ? (a?.Location as LocationPoint).Point : XYZ.Zero;
-            //XYZ bPoint = b.Location as LocationPoint != null ? (b?.Location as LocationPoint).Point : XYZ.Zero;
             XYZ aPoint = GetPoint(a);
             XYZ bPoint = GetPoint(b);
             int result = Direction switch

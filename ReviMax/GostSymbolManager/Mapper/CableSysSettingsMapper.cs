@@ -18,7 +18,10 @@ namespace ReviMax.GostSymbolManager.Mapper
             return new CableSystemSettings
             {
                 GeneralSettings = dto.GeneralSettings !=null ? dto.GeneralSettings.ToModel() : new(),
-                LineSettings = dto.LineSettings.Where(s=>s != null).Select(s=>s.ToModel()).ToList(),
+                DocLineSettings = dto.DocLineSettings
+                .Where(s=> s.Key != null && !string.IsNullOrEmpty(s.Key) && s.Value != null)
+                .ToDictionary(kvp=> kvp.Key, kvp => kvp.Value
+                    .Select(line=>line.ToModel()).ToList())
             }; 
         }
         public static CableSystemSettingsDto ToDto(this CableSystemSettings model)
@@ -27,7 +30,10 @@ namespace ReviMax.GostSymbolManager.Mapper
             return new CableSystemSettingsDto
             {
                 GeneralSettings = model.GeneralSettings != null ? model.GeneralSettings.ToDto() : new(),
-                LineSettings = model.LineSettings.Where(s=> s != null).Select(s=>s.ToDto()).ToList(),
+                DocLineSettings = model.DocLineSettings
+                .Where(s=>s.Key!=null && !string.IsNullOrEmpty(s.Key) && s.Value != null)
+                .ToDictionary(kvp=>kvp.Key, kvp=> kvp.Value
+                    .Select(line=>line.ToDto()).ToList())
             };
         }
         private static BaseCableSysSettings ToModel(this BaseCableSysSettingsDto dto)

@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ReviMax.GostSymbolManager.UI.Windows"
         xmlns:fa="http://schemas.fontawesome.io/icons/"
+        xmlns:tbext="clr-namespace:ReviMax.UI.Resources"
         mc:Ignorable="d"
         Title="Найстройка обозначения" Height="450" Width="500">
     <Window.Resources>
@@ -17,6 +18,7 @@
                 <ResourceDictionary Source="/ReviMax;component/GostSymbolManager/UI/UserControl/Resources/RmListStyle.xaml"/>
                 <ResourceDictionary Source="/ReviMax;component/GostSymbolManager/UI/UserControl/Resources/RmRadioButtonNoBorderStyle.xaml"/>
                 <ResourceDictionary Source="/ReviMax;component/GostSymbolManager/UI/UserControl/Resources/LineItemTemplate.xaml"/>
+                <ResourceDictionary Source="/ReviMax;component/UI/Templates/RmSearchPanelStyle.xaml"/>
             </ResourceDictionary.MergedDictionaries>
             <!-- Цвета -->
             <SolidColorBrush x:Key="Bg" Color="#1F1F1F"/>
@@ -40,13 +42,26 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                     <Border Grid.Column="2" Background="Transparent" BorderThickness="2" CornerRadius="16" BorderBrush="{StaticResource Border}">
-                            <ListBox Width="275" HorizontalAlignment="Center" Margin="8"
-                                 Background="Transparent" BorderThickness="0" ItemContainerStyle="{StaticResource RmListItem}"
-                                 ItemTemplate="{StaticResource LineItemTemplate}"
-                                     ItemsSource="{Binding LineStyles}"
-                                     SelectedItem="{Binding SelectedLineStyle, Mode=TwoWay}">    
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="40"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <TextBox Grid.Row="0" Style="{StaticResource RmSearchPanel}" 
+                                         HorizontalAlignment="Left" Height="30" Width="265"
+                                         Margin="12,5,0,0"
+                                         tbext:TextBoxExtension.Caption="Введите для поиска"
+                                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}">
+                                         
+                                </TextBox>
+                                <ListBox Grid.Row="1" Width="275" HorizontalAlignment="Center" Margin="8"
+                                     Background="Transparent" BorderThickness="0" ItemContainerStyle="{StaticResource RmListItem}"
+                                     ItemTemplate="{StaticResource LineItemTemplate}"
+                                         ItemsSource="{Binding FilteredItems}"
+                                         SelectedItem="{Binding SelectedLineStyle, Mode=TwoWay}">    
 
-                            </ListBox>
+                                </ListBox>
+                            </Grid>
                         </Border>
                     
 

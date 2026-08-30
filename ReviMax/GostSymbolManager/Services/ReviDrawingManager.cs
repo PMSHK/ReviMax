@@ -14,6 +14,7 @@ using ReviMax.GostSymbolManager.Models.Graph.Filter;
 using ReviMax.Revit.Core.Services;
 using ReviMax.Revit.Parameters;
 using ReviMax.Core.Config;
+using ReviMax.GostSymbolManager.Models;
 using ReviMax.GostSymbolManager.Mapper;
 using ReviMax.Revit.Config.Storage;
 
@@ -114,7 +115,7 @@ namespace ReviMax.GostSymbolManager.Services
 
 
 
-        public void DrawRunFamily(GraphRun run, FamilySymbol symbol, View activeView, string runId, ReviLine lineSettings)
+        public void DrawRunFamily(GraphRun run, FamilySymbol symbol, View activeView, string runId, ReviLine lineSettings, SymbolColor additionalColor, RMDocumentType documentType)
         {
             XYZ rawStart = GetStartPoint(run);
             XYZ rawEnd = GetEndPoint(run);
@@ -130,7 +131,14 @@ namespace ReviMax.GostSymbolManager.Services
 
             dir = dir.Normalize();
 
-            List<ElementId> sourceIds = new();
+            List<Element> sourceElements = run.Segments
+                .Select(segment => segment.Element)
+                .Where(element => element != null)
+                .GroupBy(element => element.Id.IntegerValue)
+                .Select(group => group.First())
+                .ToList();
+
+            List<ElementId> sourceIds = sourceElements.Select(element => element.Id).ToList();
 
             Doc.StartTransaction("Draw Run Family", doc =>
             {
@@ -150,17 +158,18 @@ namespace ReviMax.GostSymbolManager.Services
                 _revitManager.SetInstanceParameter(instance, "RM_GLYPH_SIZE", lineSettings.GlyphSize);
 
                 Parameter p = ParameterManager.GetParameter(instance, "RM_DC_COLOR");
-                p.Set($"{lineSettings.Color}");
-                var filterRule = RevitFilterService.CreateFilterRule(p.Id, $"{lineSettings.Color.ToString()}");
+                p.Set($"{additionalColor}"); 
+
+                var filterRule = RevitFilterService.CreateFilterRule(p.Id, $"{additionalColor.ToString()}");
                 var categories = new List<ElementId>
                     {
                     instance.Category.Id
                     };
-                ParameterFilterElement filter = RevitFilterService.GetFilter(Doc, $"RM_COLOR_{lineSettings.Color.ToString()}", categories);
+                ParameterFilterElement filter = RevitFilterService.GetFilter(Doc, $"RM_COLOR_{additionalColor.ToString()}", categories);
                 var paramFilter = new ElementParameterFilter(filterRule);
                 filter.SetElementFilter(paramFilter);
                 var ogs = new OverrideGraphicSettings();
-                ogs.SetProjectionLineColor(ColorMapper.FromSymbolColor(lineSettings.Color));
+                ogs.SetProjectionLineColor(ColorMapper.FromSymbolColor(additionalColor));
                 activeView.SetFilterOverrides(filter.Id,ogs);
                 RevitFilterService.AddFilterToView(filter, activeView);
 
@@ -170,16 +179,18 @@ namespace ReviMax.GostSymbolManager.Services
                 RotateFreshInstance(instance, start, dir, activeView);
                 ReviMaxLog.Information($"runId: {runId},placed instance: {instance.Name} | {instance.Id}, run: {string.Join(",", run.Segments.Select(seg=>seg.Element.Id))}");
 
-                sourceIds = run.Segments.Select(seg => seg.Element.Id).ToList();
-
                 ReviMaxStorage.Stamp(
                     instance,
                     runId,
                     symbol.Name,
-                    sourceIds,
-                    activeView.Id);
+                    sourceElements,
+                    activeView.Id,
+                    documentType);
 
-                RevitElementsManager.HideElementsOnView(sourceIds, activeView);
+                if (documentType == RMDocumentType.CURRENT)
+                {
+                    RevitElementsManager.HideElementsOnView(sourceIds, activeView);
+                }
             });
             
 

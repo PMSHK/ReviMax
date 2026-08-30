@@ -7,9 +7,10 @@ using System.Windows.Controls;
 using System.Windows.Threading;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
-using ReviMax.GostSymbolManager.Filters;
-using ReviMax.GostSymbolManager.Models.Annotations;
-using ReviMax.GostSymbolManager.Providers.Factory;
+using ReviMax.Core.Enums;
+using ReviMax.Core.Filters;
+using ReviMax.Core.Providers.Factory;
+using ReviMax.Revit.Model;
 
 namespace ReviMax.Revit.Core.Services
 {

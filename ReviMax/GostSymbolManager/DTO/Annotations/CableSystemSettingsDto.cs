@@ -12,11 +12,13 @@ namespace ReviMax.GostSymbolManager.DTO.Annotations
     {
         public CableSystemSettingsDto() { }
         public BaseCableSysSettingsDto? GeneralSettings { get; set; }
-        public List<ReviLineDto>? LineSettings { get; set; }
+        public Dictionary<string,List<ReviLineDto>>? DocLineSettings { get; set; }
         public override string ToString()
         {
-            var lineSettingsStr = LineSettings != null ? string.Join(", ", LineSettings.Select(l => l.ToString())) : "null";
-            return $"CableSystemSettingsDto: GeneralSettings: {GeneralSettings}, LineSettings: {lineSettingsStr}";
+            var lineSettingsStr = DocLineSettings != null ? 
+                string.Join(", ", DocLineSettings.Select(kvp=>$"{kvp.Key}: " +
+                $"{string.Join(", ", kvp.Value.Select(line=> line.ToString()))}")) : "null";
+            return $"CableSystemSettingsDto: GeneralSettings: {GeneralSettings}, DocLineSettings: {lineSettingsStr}";
         }
     }
 }

@@ -16,12 +16,12 @@ using ReviMax.GostSymbolManager.Models.Revit;
 using ReviMax.GostSymbolManager.Models.Graph;
 using ReviMax.Revit.Core.Services;
 using ReviMax.GostSymbolManager.Services;
-using ReviMax.GostSymbolManager.Services.Utils;
-using ReviMax.GostSymbolManager.Providers.Factory;
-using ReviMax.GostSymbolManager.Filters;
 using ReviMax.Core.Config;
 using ReviMax.Revit.Model;
 using ReviMax.Revit.Calculators;
+using ReviMax.Core.Utils.Managers;
+using ReviMax.Core.Filters;
+using ReviMax.Core.Providers.Factory;
 
 namespace ReviMax.Commands
 {
@@ -52,7 +52,6 @@ namespace ReviMax.Commands
 
             List<Category> lineStyles = filterManager.GetLineStyles();
             IList<Element> cableSystems = filterManager.GetCableElementsByCategory(new CableTrayFilter());
-            //IList<Element> cableSystems = filterManager.GetCableElementsByCategory(BuiltInCategory.OST_CableTray);
             AxisProviderFactory axisProviderFactory = new(Doc);
             List<AxisSegment> segments = cableSystems
                 .Where(element => element != null)

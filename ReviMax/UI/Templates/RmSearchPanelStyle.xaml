@@ -1,0 +1,84 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="clr-namespace:ReviMax.UI.Resources">
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/ReviMax;component/UI/Resources/WindowElementsResource.xaml"/>
+    </ResourceDictionary.MergedDictionaries>
+
+    <Style x:Key="RmSearchPanel" TargetType="TextBox">
+        <Setter Property="Foreground" Value="{StaticResource Text}"/>
+        <Setter Property="Background" Value="{StaticResource Panel2}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Border}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="2,5,0,0"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="4"
+                    SnapsToDevicePixels="True">
+
+                        <Grid>
+                            <!-- Плейсхолдер -->
+                            <TextBlock
+                            x:Name="Placeholder"
+                            Text="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(local:TextBoxExtension.Caption)}"
+                            Foreground="#666666"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Left"
+                            Margin="5,-2,0,0"
+                            Visibility="Collapsed"/>
+
+                            <!-- Обязательный хост ввода -->
+                            <ScrollViewer
+                            x:Name="PART_ContentHost"
+                            Focusable="False"
+                            HorizontalScrollBarVisibility="Hidden"
+                            VerticalScrollBarVisibility="Hidden"/>
+                        </Grid>
+                    </Border>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="Text" Value="">
+                            <Setter TargetName="Placeholder" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                    <!--<Grid Height="{TemplateBinding Height}" VerticalAlignment="{TemplateBinding VerticalAlignment}" HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
+                          >
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="{TemplateBinding Width}"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <Border Grid.Column="0" 
+                                Background="#f0f7fa" 
+                                Width="{TemplateBinding Width}"
+                                CornerRadius="2"
+                                BorderThickness="1">
+                            
+                        </Border>
+                        <TextBlock x:Name="Caption"
+                            Grid.Column="0" 
+                            Foreground="#cccccc" Text="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(local:TextBoxExtension.Caption)}" 
+                            Padding="2,1,0,0" Visibility="{Binding CaptionVisibility}"
+                            Width="{TemplateBinding Width}"/>
+                        <TextBlock x:Name="Content"
+                            Grid.Column="0" 
+                            Foreground="#000000" Text="{Binding Text}" 
+                            Padding="2,3,0,0" Visibility="{Binding ContentVisibility}"/>
+                    </Grid>-->
+
+
+                    
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+</ResourceDictionary>

@@ -47,7 +47,6 @@ namespace ReviMax.Revit.Core.Bridge
             catch (Exception ex)
             {
                 ReviMaxLog.Error("Error in ExternalEvent request", ex);
-                //TaskDialog.Show("Error in ExternalEvent", ex.ToString());
             }
 
             try
@@ -55,7 +54,6 @@ namespace ReviMax.Revit.Core.Bridge
                 if (item.Value.callback != null)
                 {
                     ReviMaxLog.Information("ExternalEvent callback started");
-                        //item.Value.callback.Invoke();
                         _uiDispatcher.BeginInvoke(new Action(() =>
                         {
                             item.Value.callback.Invoke();
@@ -66,7 +64,6 @@ namespace ReviMax.Revit.Core.Bridge
             catch (Exception ex)
             {
                 ReviMaxLog.Error("Error in ExternalEvent callback", ex);
-                //TaskDialog.Show("Error in ExternalEvent callback", ex.ToString());
             }
             }
         }

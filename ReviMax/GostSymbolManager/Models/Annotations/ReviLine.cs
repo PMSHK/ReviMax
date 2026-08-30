@@ -95,7 +95,7 @@ namespace ReviMax.GostSymbolManager.Models.Annotations
             return !string.IsNullOrEmpty(Name) && Family.Filled();
         }
 
-        public void CoppyFrom(ReviLine source)
+        public void CopyFrom(ReviLine source)
         {
             if (ReferenceEquals(this, source)) return;
             if (source == null) return;
@@ -117,6 +117,43 @@ namespace ReviMax.GostSymbolManager.Models.Annotations
         public Object Clone()
         {
             return new ReviLine(this);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is ReviLine line &&
+                   _weight == line._weight &&
+                   _step == line._step &&
+                   _offset == line._offset &&
+                   _glyphSize == line._glyphSize &&
+                   Name == line.Name &&
+                   EqualityComparer<FamilyGroup>.Default.Equals(Family, line.Family) &&
+                   CategoryId == line.CategoryId &&
+                   EqualityComparer<IList<ReviLineSegment>>.Default.Equals(Segments, line.Segments) &&
+                   Weight == line.Weight &&
+                   EqualityComparer<SymbolColor>.Default.Equals(Color, line.Color) &&
+                   Step == line.Step &&
+                   Offset == line.Offset &&
+                   GlyphSize == line.GlyphSize;
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = 1809993824;
+            hashCode = hashCode * -1521134295 + _weight.GetHashCode();
+            hashCode = hashCode * -1521134295 + _step.GetHashCode();
+            hashCode = hashCode * -1521134295 + _offset.GetHashCode();
+            hashCode = hashCode * -1521134295 + _glyphSize.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Name);
+            hashCode = hashCode * -1521134295 + EqualityComparer<FamilyGroup>.Default.GetHashCode(Family);
+            hashCode = hashCode * -1521134295 + CategoryId.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<IList<ReviLineSegment>>.Default.GetHashCode(Segments);
+            hashCode = hashCode * -1521134295 + Weight.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<SymbolColor>.Default.GetHashCode(Color);
+            hashCode = hashCode * -1521134295 + Step.GetHashCode();
+            hashCode = hashCode * -1521134295 + Offset.GetHashCode();
+            hashCode = hashCode * -1521134295 + GlyphSize.GetHashCode();
+            return hashCode;
         }
     }
 }

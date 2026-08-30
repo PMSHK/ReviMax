@@ -1,18 +1,4 @@
-﻿using Autodesk.Revit.Attributes;
-using Autodesk.Revit.DB;
-using Autodesk.Revit.DB.Electrical;
-using Autodesk.Revit.UI;
-using ReviMax.Core.Config;
-using ReviMax.Core.Utils.Converter;
-using ReviMax.Core.Utils.Managers;
-using ReviMax.GostSymbolManager.Models.Graph;
-using ReviMax.GostSymbolManager.Models.Graph.Filter;
-using ReviMax.GostSymbolManager.Models.Revit;
-using ReviMax.GostSymbolManager.Services;
-using ReviMax.GostSymbolManager.Services.Utils;
-using ReviMax.GostSymbolManager.UI.Windows;
-using ReviMax.NumeratorManager.UI.Windows;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing.Text;
@@ -24,6 +10,21 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
+using Autodesk.Revit.Attributes;
+using Autodesk.Revit.DB;
+using Autodesk.Revit.DB.Electrical;
+using Autodesk.Revit.UI;
+using ReviMax.Core.Config;
+using ReviMax.Core.Utils.Config;
+using ReviMax.Core.Utils.Converter;
+using ReviMax.Core.Utils.Managers;
+using ReviMax.GostSymbolManager.Models.Graph;
+using ReviMax.GostSymbolManager.Models.Graph.Filter;
+using ReviMax.GostSymbolManager.Models.Revit;
+using ReviMax.GostSymbolManager.Services;
+using ReviMax.GostSymbolManager.Services.Utils;
+using ReviMax.GostSymbolManager.UI.Windows;
+using ReviMax.NumeratorManager.UI.Windows;
 
 namespace ReviMax.Commands
 {
@@ -34,16 +35,7 @@ namespace ReviMax.Commands
         public OpenNumeratorWindow() { }
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
-            AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
-            {
-                var assemblyName = new AssemblyName(args.Name).Name + ".dll";
-                var pluginFolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-                var assemblyPath = Path.Combine(pluginFolder, assemblyName);
-                ReviMaxLog.Information($"Assembly path: {assemblyPath}");
-                return File.Exists(assemblyPath) ? Assembly.Load(assemblyPath) : null;
-            };
-
-            SortedDictionary<string,string> d = new SortedDictionary<string,string>();
+            AssemblyResolver.Register();
 
             UIDocument uIDocument = commandData.Application.ActiveUIDocument;
             Document Doc = uIDocument.Document;

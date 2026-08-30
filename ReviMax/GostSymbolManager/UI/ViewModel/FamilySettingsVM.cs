@@ -177,7 +177,7 @@ namespace ReviMax.GostSymbolManager.UI.ViewModel
         {
             if (isBusy) return;
             isBusy = true;
-            LineSettings.CoppyFrom(DraftLineSettings);
+            LineSettings.CopyFrom(DraftLineSettings);
             if (double.TryParse(StepValue, out double step))
                 LineSettings.Step = step.MillimetersToFeet();
 
