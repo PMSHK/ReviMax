@@ -7,6 +7,7 @@ using System.Linq;
 using System.Runtime;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Data;
 using System.Windows.Input;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
@@ -66,6 +67,22 @@ namespace ReviMax.GostSymbolManager.UI.ViewModel
 
         }
 
+        private string _searchText;
+        public ICollectionView FilteredItems { get; set; }
+        public string SearchText
+        {
+            get => _searchText;
+            set
+            {
+                if (_searchText != value)
+                {
+                    _searchText = value;
+                    FilteredItems.Refresh();
+                    OnPropertyChanged(nameof(SearchText));
+                }
+            }
+        }
+
 
         public ObservableCollection<LineRowVM> LineStyles { get; } = new();
 
@@ -96,14 +113,23 @@ namespace ReviMax.GostSymbolManager.UI.ViewModel
             Doc = doc ?? throw new ArgumentNullException(nameof(doc));
 
             Settings = settings ?? throw new ArgumentNullException(nameof(settings));
-            
+
             filterManager = new RevitFilterManager(Doc);
 
 
             lineService = new ReviLineService(Doc, filterManager?.GetLineStyles());
 
-            FindLineStyles();
-            
+            LoadLinesFilter();
+        }
+
+        private void LoadLinesFilter()
+        {
+            FilteredItems = CollectionViewSource.GetDefaultView(FindLineStyles());
+            FilteredItems.Filter = item =>
+            {
+                var currItem = item as LineRowVM;
+                return string.IsNullOrEmpty(_searchText) || (currItem != null && currItem.Name.Contains(_searchText));
+            };
         }
 
         public ReviLineSettingsVM(Document doc, CableSystemSettings settings, ReviLine lineSettings, RevitDispatcherService dispatcher)
@@ -120,6 +146,8 @@ namespace ReviMax.GostSymbolManager.UI.ViewModel
             lineService = new ReviLineService(Doc, filterManager?.GetLineStyles());
 
             FindLineStyles();
+            LoadLinesFilter();
+
             Accept = new ReviMaxCommand(AcceptChandes, CanAcceptChanges);
             Decline = new ReviMaxCommand(DeclineChanges);
             EditLineSymbol = new ReviMaxCommand(OnSymbolEdit);
@@ -128,15 +156,12 @@ namespace ReviMax.GostSymbolManager.UI.ViewModel
                 if (SaveLoadFileService.LoadFromFile<CableSystemSettingsDto>(PathManager.GetAppDataPath(), out var fileSettings))
                 {
                     var fileName = Path.GetFileNameWithoutExtension(fileSettings.path);
-                    Settings.CoppyFrom(fileSettings.data.ToModel());
-                    var foundLineSettings = Settings.LineSettings.FirstOrDefault(ls => ls.Name == LineSettings.Name);
-                    if (foundLineSettings != null) LineSettings.CoppyFrom(foundLineSettings);
+                    Settings.CopyFrom(fileSettings.data.ToModel(), doc);
+                    //var foundLineSettings = Settings.DocLineSettings.FirstOrDefault(ls => ls.Name == LineSettings.Name);
+                    //if (foundLineSettings != null) LineSettings.CoppyFrom(foundLineSettings);
                     _tmpLine = LineSettings.Clone() as ReviLine;
                     SelectedLineStyle = LineStyles.FirstOrDefault(s =>
                                         string.Equals(s.Name, LineSettings.Name, StringComparison.Ordinal));
-
-
-                    var actual = Settings.LineSettings.FirstOrDefault(ls => ls.Name == LineSettings.Name);
                 }
             }, () => true);
             SaveSettings = new ReviMaxCommand(() => SaveLoadFileService.SaveToFile<CableSystemSettingsDto>(Settings.ToDto()), () => Settings != null && Settings.Filled() );
@@ -147,11 +172,11 @@ namespace ReviMax.GostSymbolManager.UI.ViewModel
             ReviMaxLog.Information($"Selected line style: {SelectedLineStyle?.Name}, LineSettings name: {LineSettings?.Name}, value: {SelectedLineStyle?.Name}, tmpLine: {_tmpLine?.ToString()}");
         }
 
-        public void FindLineStyles()
+        public ObservableCollection<LineRowVM> FindLineStyles()
         {
             LineStyles.Clear();
             Categories = lineService.LineStyles;
-            if (Categories == null) return;
+            if (Categories == null) return [];
 
             foreach (var style in Categories)
             {
@@ -161,6 +186,7 @@ namespace ReviMax.GostSymbolManager.UI.ViewModel
                 }
                 );
             }
+            return LineStyles;
         }
 
         private void AcceptChandes()
@@ -175,7 +201,7 @@ namespace ReviMax.GostSymbolManager.UI.ViewModel
             if (SelectedLineStyle != null)
             {
                 UpdateReviLine(SelectedLineStyle);
-                LineSettings.CoppyFrom(_tmpLine);
+                LineSettings.CopyFrom(_tmpLine);
                 _dispatcher.Request(
                     request: (app) =>
                     {

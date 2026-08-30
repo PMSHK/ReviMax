@@ -29,6 +29,7 @@ using ReviMax.Revit.Config.Storage;
 using ReviMax.Revit.Config.Storage.Model;
 using ReviMax.Revit.Core.Bridge;
 using ReviMax.Revit.Core.Bridge.Event;
+using ReviMax.Revit.Core.Filter;
 using ReviMax.Revit.Core.Services;
 using ReviMax.Revit.Model;
 
@@ -82,7 +83,7 @@ namespace ReviMax.GostSymbolManager.UI.ViewModel
         public RevitDispatcherService dispatcher = new();
         public Dictionary<FamilyMode,IList<Element>> SelectedElements { get; set; }
         internal ICableSystemCategory? CurrentFilter {  get; set; }
-        internal List<ElementToDraw> CableSystems { get; } = new();
+        internal List<DocElementsInfo> CableSystems { get; } = new();
         public CableSystemFilterMode CurrentFilterMode 
         { 
             get => _currentFilterMode; 
@@ -218,11 +219,11 @@ namespace ReviMax.GostSymbolManager.UI.ViewModel
                         throw new Exception($"Filter for categories {string.Join(", ", categories.Select(c => c.ToString()))} not found");
                     }
                     ReviMaxLog.Information($"Filter selected: {filter.ToString()}");
-                    var elementsToDraw = new List<ElementToDraw>
+                    var elementsToDraw = new List<DocElementsInfo>
                     {
-                        new ElementToDraw()
+                        new DocElementsInfo()
                         {
-                        LinkedDocumentInfo = new DocumentInfo(Doc),
+                        DocInfo = new DocumentInfo(Doc),
                         Elements = groupedElements,
                         }
                     };
@@ -241,9 +242,27 @@ namespace ReviMax.GostSymbolManager.UI.ViewModel
                 request: app =>
                 {
                     ElementToDrawCollector collector = new(_cableSystemService);
-                    var elementsToDraw = new List<ElementToDraw>();
+                    var elementsToDraw = new List<DocElementsInfo>();
                     var currentFilter = GetCurrentFilter();
                     if (currentFilter == null) return;
+
+                    View activeView = Doc.ActiveView;
+                    BoundingBoxXYZ cropBox = activeView.CropBox;
+
+                    (double worldMinZ, double worldMaxZ) = RevitViewManager.GetPlanViewRangeZ(activeView);
+                    ReviMaxLog.Information($"worldMinZ = {worldMinZ}, worldMaxZ = {worldMaxZ}");
+
+                    XYZ[] localVertices = RevitViewManager.GetLocalVerticies(activeView);
+                    XYZ[] worldVerices = RevitViewManager.TransformVerticies(activeView.CropBox.Transform, localVertices);
+                    (XYZ min, XYZ max) viewLimits = RevitViewManager.GetWorldLimits(worldVerices, (worldMinZ, worldMaxZ));
+
+                    Outline hostOutline = new Outline(viewLimits.min, viewLimits.max);
+                    var hostBoxFilter = new BoundingBoxIntersectsFilter(hostOutline);
+                    ReviMaxLog.Information($"world hostOutline = X[{hostOutline.MinimumPoint.X};{hostOutline.MaximumPoint.X}] " +
+                        $"Y[{hostOutline.MinimumPoint.Y};{hostOutline.MaximumPoint.Y}] " +
+                        $"Z[{hostOutline.MinimumPoint.Z};{hostOutline.MaximumPoint.Z}]");
+
+                    var viewPoints = RevitElementsManager.GetMinMaxPointsOfView(activeView, activeView);
 
                     if (!JustLinkedDocuments)
                     {
@@ -252,12 +271,28 @@ namespace ReviMax.GostSymbolManager.UI.ViewModel
                         if (EnableLinkedDocuments)
                         {
                             var linkedElementsToDraw = collector.GetLinkedElementsToDraw(Doc, currentFilter);
+                            foreach (var linkedElement in linkedElementsToDraw)
+                            {
+                                if (linkedElement == null) continue;
+
+                                Outline hostOutlineInLinkedSystem = new Outline(linkedElement.InverseTransform.OfPoint(viewLimits.min), linkedElement.InverseTransform.OfPoint(viewLimits.max));
+                                var transformedHostBoxFilter = new BoundingBoxIntersectsFilter(hostOutlineInLinkedSystem);
+                                var docElements = linkedElement?.Elements;
+                                if (docElements != null)
+                                {
+                                    foreach (var elementList in docElements.Values)
+                                    {
+                                        ((List<Element>)elementList).RemoveAll(el=>!transformedHostBoxFilter.PassesFilter(el));
+                                    }
+                                }
+                            }
                             elementsToDraw.AddRange(linkedElementsToDraw);
                         }
                     }
 
                     else
                     {
+                        Outline outline = RevitElementsManager.BuildOutline(viewPoints.min, viewPoints.max);
                         var linkedElementsToDraw = collector.GetLinkedElementsToDraw(Doc, currentFilter);
                         elementsToDraw.AddRange(linkedElementsToDraw);
                     }
@@ -269,36 +304,50 @@ namespace ReviMax.GostSymbolManager.UI.ViewModel
                     ReviMaxLog.Information($"Manage data types for filter mode: {_currentFilterMode}");
                 });
         }
-        private void LoadCableSystemRow(List<ElementToDraw> list)
+        private void LoadCableSystemRow(List<DocElementsInfo> list)
         {
             Systems.Clear();
             CableSystems.Clear();
-            foreach (var elementSet in list)
+            foreach (var docElementsInfo in list)
             {
-                foreach (var element in elementSet.Elements)
+                var currDoc = docElementsInfo?.DocInfo?.Document;
+                if (currDoc == null) continue;
+                var documentUniqueID = ProjectInfoManager.GetDocumentIdentificationString(currDoc);
+                string documentGuid = GuidBuilder.CreateVersion5Guid(documentUniqueID).ToString();
+                if (documentGuid == null) continue;
+                ReviMaxLog.Information($"Document ID for Document {docElementsInfo.DocInfo.Document.Title} is: {documentGuid}");
+                foreach (var element in docElementsInfo.Elements)
                 {
-                    var _line = new ReviLine();
-                    _line.Family.FamilyMode = element.Key;
-                    _line.Step = _settings.GeneralSettings.Step;
-                    _line.Offset = _settings.GeneralSettings.Offset;
-                    var currLine = _settings.LineSettings.FirstOrDefault(s => s.Family.FamilyMode == element.Key);
+                    var _line = new ReviLine()
+                    {
+                        Family = { FamilyMode = element.Key },
+                        Step = _settings.GeneralSettings.Step,
+                        Offset = _settings.GeneralSettings.Offset,
+                    };
+
+                    if (!_settings.DocLineSettings.TryGetValue(documentGuid, out var lineList))
+                    {
+                        lineList = new List<ReviLine>();
+                        _settings.DocLineSettings[documentGuid] = lineList;
+                    }
+                    var currLine = lineList.FirstOrDefault(line => line.Family.FamilyMode == element.Key);
                     if (currLine == null)
                     {
-                        _settings.LineSettings.Add(_line);
-                    }
-                    if (elementSet.Type == RMDocumentType.CURRENT)
+                        lineList.Add(_line);
+                    } else
                     {
-                        elementSet.Color = ColorMapper.FromSymbolColor(currLine.Color);
-                    }
-                    CableSystems.Add(elementSet);
 
+                    }
+                        docElementsInfo.Color = ColorMapper.FromSymbolColor(currLine.Color);
+                    CableSystems.Add(docElementsInfo);
+                    ReviMaxLog.Information($"Adding new line {_line.ToString()} to list. Now it's: {_settings.ToString()}");
                     Systems.Add(
                         new CableSystemRowVM(dispatcher)
                         {
                             Title = element.Key.GetDescription(),
                             SubTitle = $"Элементов: {element.Value.Count.ToString()}",
                             Settings = _settings,
-                            LineSettings = _settings.LineSettings.Where(ls => ls.Family.FamilyMode.Equals(element.Key)).FirstOrDefault(),
+                            LineSettings = lineList.FirstOrDefault(line=> line.Family.FamilyMode == element.Key),
                             Doc = _doc
                         }
                         );

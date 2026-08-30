@@ -22,22 +22,22 @@ namespace ReviMax.GostSymbolManager.Services
             _cableSystemService = cableSystemService;
         }
 
-        public ElementToDraw GetElementsToDraw(Document doc, ICableSystemCategory filter)
+        public DocElementsInfo GetElementsToDraw(Document doc, ICableSystemCategory filter)
         {
             var elements = _cableSystemService.GetCableSystemsByCategory(filter);
 
-            var elementToDraw = new ElementToDraw()
+            var elementToDraw = new DocElementsInfo()
             {
-                LinkedDocumentInfo = new DocumentInfo(doc),
+                DocInfo = new DocumentInfo(doc),
                 Elements = elements,
                 Type = RMDocumentType.CURRENT,
             };
             return elementToDraw;
         }
 
-        public List<ElementToDraw> GetLinkedElementsToDraw(Document doc, ICableSystemCategory filter)
+        public List<DocElementsInfo> GetLinkedElementsToDraw(Document doc, ICableSystemCategory filter)
         {
-            var result = new List<ElementToDraw>();
+            var result = new List<DocElementsInfo>();
             //var linkedDocumentsWithInstances = LinkedDocManager.GetLinkedDocumentsInfo(doc);
             foreach (var linkedDocInfo in doc.GetLinkedDocumentsInfo())
             {
@@ -45,9 +45,9 @@ namespace ReviMax.GostSymbolManager.Services
                 if (linkedElements == null) continue;
                 foreach (var linkedElement in linkedElements)
                 {
-                    result.Add(new ElementToDraw()
+                    result.Add(new DocElementsInfo()
                     {
-                        LinkedDocumentInfo = linkedDocInfo,
+                        DocInfo = linkedDocInfo,
                         Elements = new Dictionary<FamilyMode, IList<Element>> { { linkedElement.Key, linkedElement.Value } },
                         Type = RMDocumentType.LINKED,
                     });

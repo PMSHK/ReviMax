@@ -11,14 +11,14 @@ using ReviMax.Revit.Model;
 
 namespace ReviMax.GostSymbolManager.Models
 {
-    public class ElementToDraw
+    public class DocElementsInfo
     {
-        public DocumentInfo? LinkedDocumentInfo { get; set; } = null;
+        public DocumentInfo? DocInfo { get; set; } = null;
         public Dictionary<FamilyMode, IList<Element>>? Elements { get; set; } = new();
         public RMDocumentType Type { get; set; } = RMDocumentType.CURRENT;
         public Color Color { get; set; } = new Color(0, 0, 0);
-        public Transform Transform => LinkedDocumentInfo?.LinkInstance?.GetTotalTransform() ?? Transform.Identity;
-        public Transform InverseTransform => LinkedDocumentInfo?.LinkInstance?.GetTotalTransform().Inverse ?? Transform.Identity;
+        public Transform Transform => DocInfo?.LinkInstance?.GetTotalTransform() ?? Transform.Identity;
+        public Transform InverseTransform => DocInfo?.LinkInstance?.GetTotalTransform().Inverse ?? Transform.Identity;
         public SymbolColor ConvertColor => new SymbolColor
         {
             R = Color.Red,

@@ -13,7 +13,7 @@ using ReviMax.Revit.Model;
 
 namespace ReviMax.Revit.Core.Services
 {
-    public class RevitElementsManager
+    public static class RevitElementsManager
     {
 
         public static void ShowElementsOnView(List<ElementId> elements, View activeView)
@@ -62,7 +62,7 @@ namespace ReviMax.Revit.Core.Services
 
         }
 
-        public ResultHandler<FilteredElementCollector> BuildCollector (ElementQuery query)
+        public static ResultHandler<FilteredElementCollector> BuildCollector (ElementQuery query)
         {
             if (query == null) return ResultHandler<FilteredElementCollector>.Failure("Query is null");
             
@@ -86,7 +86,7 @@ namespace ReviMax.Revit.Core.Services
             }
         }
 
-        public ResultHandler<IEnumerable<Element>> GetElements (ElementQuery query, FilteredElementCollector collector)
+        public static ResultHandler<IEnumerable<Element>> GetElements (ElementQuery query, FilteredElementCollector collector)
         {
             if (query == null && collector == null) return ResultHandler<IEnumerable<Element>>.Failure("query or collector is null");
             
@@ -133,6 +133,50 @@ namespace ReviMax.Revit.Core.Services
             {
                 return "<name error>";
             }
+        }
+
+        public static ResultHandler<BoundingBoxXYZ> GetBoundingBoxXYZ<T>(this T element, View view) where T : Element
+        {
+            BoundingBoxXYZ boundingBox = element.get_BoundingBox(view);
+            if (boundingBox == null) return ResultHandler<BoundingBoxXYZ>.Failure($"Bounding Box for view {view.Id} was not found");
+            return ResultHandler<BoundingBoxXYZ>.Success(boundingBox);
+        }
+
+        public static (XYZ min, XYZ max) GetMinMaxPointsOfView<T>(this T element, View view) where T : Element
+        {
+            BoundingBoxXYZ boundingBox;
+            XYZ min = XYZ.Zero;
+            XYZ max = XYZ.Zero;
+            var result = element.GetBoundingBoxXYZ(view);
+            if (!result.IsSuccess) return (XYZ.BasisX, XYZ.BasisY);
+            if (result.IsSuccess)
+            {
+                boundingBox = result.Value;
+                min = boundingBox.Min;
+                max = boundingBox.Max;
+            }
+            return (min, max);
+        }
+
+        public static Outline BuildOutline(XYZ minValue, XYZ maxValue)
+        {
+            XYZ min = new XYZ(
+                Math.Min(minValue.X, maxValue.X),
+                Math.Min(minValue.Y, maxValue.Y),
+                Math.Min(minValue.Z, maxValue.Z));
+
+            XYZ max = new XYZ(
+                Math.Max(minValue.X, maxValue.X),
+                Math.Max(minValue.Y, maxValue.Y),
+                Math.Max(minValue.Z, maxValue.Z));
+
+            Outline outline = new Outline(min, max);
+
+            //Outline outline = new Outline(
+            //    new XYZ(Math.Min(minValue.X, maxValue.X), Math.Min(minValue.Y, maxValue.Y), Math.Min(minValue.Z, maxValue.Z)),
+            //    new XYZ(Math.Max(minValue.X, maxValue.X), Math.Max(minValue.Y, maxValue.Y), Math.Max(minValue.Z, maxValue.Z))
+            //);
+            return outline;
         }
 
     }

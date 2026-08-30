@@ -37,7 +37,11 @@ namespace ReviMax.Core.Utils.Managers
                 var fileName = Path.GetFileNameWithoutExtension(fileSettings.path);
                 var settings = fileSettings.data.ToModel();
                 var familyService = new FamilyService(doc);
-                List<string> familyNames = settings.LineSettings.Select(l=>l.Family.Family.FamilyName).Distinct().ToList();
+                List<string> familyNames = settings.DocLineSettings
+                    .Values
+                    .SelectMany(list => list.Select(line => line.Family.Family.FamilyName))
+                    .Distinct()
+                    .ToList();
 
                 dispatcher.Request(
                 request: (app) => {
@@ -51,7 +55,7 @@ namespace ReviMax.Core.Utils.Managers
                 return settings;
             }
             
-            var defaultSettings = SettingsService.InitializeStandard();
+            var defaultSettings = SettingsService.InitializeStandard(doc);
             ReviMaxLog.Information($"Standard settings Loaded successfully. Data: {defaultSettings.ToString()}");
             return defaultSettings;
             

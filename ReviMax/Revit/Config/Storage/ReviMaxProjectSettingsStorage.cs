@@ -84,6 +84,7 @@ namespace ReviMax.Revit.Config.Storage
 
 
                 settings = JsonConvert.DeserializeObject<CableSystemSettingsDto>(json);
+                if (settings == null || settings?.DocLineSettings == null ) return false;
                 return settings != null;
             }
             catch (Exception ex)

@@ -41,7 +41,7 @@ namespace ReviMax.GostSymbolManager.Services
             Doc = doc;
             ActiveView = Doc.GetActiveView();
         }
-        public void DrawCableSystemSymbols(ICableSystemCategory filter, CableSystemSettings _settings, List<ElementToDraw> elements)
+        public void DrawCableSystemSymbols(ICableSystemCategory filter, CableSystemSettings _settings, List<DocElementsInfo> elements)
         {
             ReviMaxLog.Information($"Drawing started. Settings is {_settings.ToString()}");
             string runID = GuidBuilder.CreateGuid();
@@ -55,23 +55,30 @@ namespace ReviMax.GostSymbolManager.Services
 
             CableSystemSettings? Settings = _settings;
 
-            List<ElementToDraw> cableSystems = elements;
+            List<DocElementsInfo> cableSystems = elements;
             foreach (var elementSet in cableSystems)
             {
-                 
+                Document? currDoc = elementSet?.DocInfo?.Document;
+                if (currDoc == null) continue;
+                var documentGUID = GuidBuilder.CreateVersion5Guid(ProjectInfoManager.GetDocumentIdentificationString(currDoc)).ToString();
                 foreach (var element in elementSet?.Elements)
                 {
                     var builder = new GraphBuilder(Tolerance);
-                    ReviMaxLog.Information("Drawing service " + string.Join(", ", _settings.LineSettings.Select(l => l.Family.FamilyMode)));
-                    var line = _settings.LineSettings.FirstOrDefault(line => line.Family.FamilyMode == element.Key);
+                    ReviMaxLog.Information("Drawing service " + string.Join(", ", _settings.DocLineSettings
+                        .Where(kvp=> documentGUID != null && kvp.Equals(documentGUID))
+                        .SelectMany(kvp=> kvp.Value)
+                        .Select(line=>line.Family.FamilyMode)));
+                    var line = _settings.DocLineSettings
+                        .Where(kvp => documentGUID != null && kvp.Key== documentGUID)
+                        .SelectMany(kvp=>kvp.Value)
+                        .FirstOrDefault(line => line.Family.FamilyMode == element.Key);
                     var familyId = line.Family.Family.FamilyId;
                     var familyName = line.Family.Family.FamilyName;
                     var categoryId = line.CategoryId;
 
-                    SymbolColor additionalColor = elementSet.Type == RMDocumentType.LINKED ? elementSet.ConvertColor : line.Color;
+                    SymbolColor additionalColor = line.Color;
 
                     var list = ExtractAxes(element.Value);
-                    //Color color = ColorMapper.FromSymbolColor(line.Color);
 
                     var nodes = builder.Build(list);
                     GraphRunsExtractor extractor = new();
@@ -318,7 +325,7 @@ namespace ReviMax.GostSymbolManager.Services
 
                 cleanupManager.DeleteReviMaxElement(runID, new ElementId(group.Value[0].ViewId));
 
-                var elementsToDraw = new List<ElementToDraw>();
+                var elementsToDraw = new List<DocElementsInfo>();
 
                 if (currentElements.Count > 0)
                 {
@@ -337,9 +344,9 @@ namespace ReviMax.GostSymbolManager.Services
 
                     if (groupedElements.Count > 0)
                     {
-                        elementsToDraw.Add(new ElementToDraw
+                        elementsToDraw.Add(new DocElementsInfo
                         {
-                            LinkedDocumentInfo = new DocumentInfo(Doc),
+                            DocInfo = new DocumentInfo(Doc),
                             Elements = groupedElements,
                             Type = RMDocumentType.CURRENT,
                         });
@@ -438,7 +445,10 @@ namespace ReviMax.GostSymbolManager.Services
 
             foreach (var symbolName in symbolNames)
             {
-                var line = settings.LineSettings.FirstOrDefault(line =>
+                var line = settings.DocLineSettings
+                    .Where(kvp=> kvp.Key == Doc.ProjectInformation.UniqueId)
+                    .SelectMany(kvp => kvp.Value)
+                    .FirstOrDefault(line =>
                     string.Equals(line.Family.Family.FamilyName, symbolName, StringComparison.OrdinalIgnoreCase));
 
                 if (line != null)

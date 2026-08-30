@@ -9,16 +9,16 @@ using ReviMax.GostSymbolManager.Mapper;
 using ReviMax.Core.Utils.Config;
 using ReviMax.Core.Utils.Managers;
 using ReviMax.GostSymbolManager.DTO.Annotations;
-using ReviMax.GostSymbolManager.Mapper;
 using ReviMax.GostSymbolManager.Models;
 using ReviMax.GostSymbolManager.Models.Annotations;
+using Autodesk.Revit.DB;
 
 namespace ReviMax.GostSymbolManager.Services.Utils
 {
     public static class SettingsService
     {
         private static CableSystemSettings _settings;
-        public static CableSystemSettings InitializeStandard()
+        public static CableSystemSettings InitializeStandard(Document doc)
         {
             BaseCableSysSettings baseSettings = new BaseCableSysSettings()
             {
@@ -32,7 +32,7 @@ namespace ReviMax.GostSymbolManager.Services.Utils
 
             ReviLine LineSettings = new ReviLine();
             List<ReviLine> Lines = new List<ReviLine>();
-            return _settings = new CableSystemSettings(baseSettings, Lines);
+            return _settings = new CableSystemSettings(baseSettings, doc, Lines);
         }
 
         public static CableSystemSettings? LoadFromFile(string path)
